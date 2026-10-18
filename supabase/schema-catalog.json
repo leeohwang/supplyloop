@@ -1,0 +1,2880 @@
+{
+  "schema": "public",
+  "tables": [
+    {
+      "name": "item_events",
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 1,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "gen_random_uuid()",
+          "generation_expression": null
+        },
+        {
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 2,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 3,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 4,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "action",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 5,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "actor_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 6,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "reason",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 7,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 8,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        }
+      ],
+      "relationships": [
+        {
+          "columns": [
+            "school_id",
+            "actor_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "item_events_school_id_actor_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "user_id"
+          ],
+          "referenced_relation": "memberships"
+        },
+        {
+          "columns": [
+            "school_id",
+            "item_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "item_events_school_id_item_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "id"
+          ],
+          "referenced_relation": "items"
+        },
+        {
+          "columns": [
+            "school_id",
+            "reservation_id",
+            "item_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "item_events_school_id_reservation_id_item_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "id",
+            "item_id"
+          ],
+          "referenced_relation": "reservations"
+        }
+      ]
+    },
+    {
+      "name": "item_staff",
+      "columns": [
+        {
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 1,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 2,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "storage_code",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 3,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "inspection_passed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 4,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "false",
+          "generation_expression": null
+        },
+        {
+          "name": "inspected_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 5,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "inspected_by",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 6,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "received_by",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 7,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "received_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 8,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 9,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        }
+      ],
+      "relationships": [
+        {
+          "columns": [
+            "school_id",
+            "inspected_by"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "item_staff_school_id_inspected_by_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "user_id"
+          ],
+          "referenced_relation": "memberships"
+        },
+        {
+          "columns": [
+            "school_id",
+            "item_id"
+          ],
+          "cardinality": "one-to-one",
+          "is_one_to_one": true,
+          "foreign_key_name": "item_staff_school_id_item_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "id"
+          ],
+          "referenced_relation": "items"
+        },
+        {
+          "columns": [
+            "school_id",
+            "received_by"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "item_staff_school_id_received_by_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "user_id"
+          ],
+          "referenced_relation": "memberships"
+        }
+      ]
+    },
+    {
+      "name": "items",
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 1,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "gen_random_uuid()",
+          "generation_expression": null
+        },
+        {
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 2,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "item_code",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 3,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "category",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 4,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "title",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 5,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "condition",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 6,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 7,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "'intake'::text",
+          "generation_expression": null
+        },
+        {
+          "name": "garment_type",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 8,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "size_system",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 9,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "size_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 10,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "color_variant",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 11,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "measurements",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 12,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "measurement_unit",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 13,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "isbn13",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 14,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "edition",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 15,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "book_format",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 16,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "course_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 17,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "book_term_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 18,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "requires_digital_code",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 19,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "is_consumable",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 20,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "approved_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 21,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 22,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 23,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        },
+        {
+          "name": "available_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 24,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        }
+      ],
+      "relationships": [
+        {
+          "columns": [
+            "school_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "items_school_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "id"
+          ],
+          "referenced_relation": "schools"
+        }
+      ]
+    },
+    {
+      "name": "memberships",
+      "columns": [
+        {
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 1,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "user_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 2,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "role",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 3,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "active",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 4,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "true",
+          "generation_expression": null
+        },
+        {
+          "name": "display_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 5,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 6,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        }
+      ],
+      "relationships": [
+        {
+          "columns": [
+            "school_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "memberships_school_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "id"
+          ],
+          "referenced_relation": "schools"
+        },
+        {
+          "columns": [
+            "user_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "memberships_user_id_fkey",
+          "referenced_schema": "auth",
+          "referenced_columns": [
+            "id"
+          ],
+          "referenced_relation": "users"
+        }
+      ]
+    },
+    {
+      "name": "reservations",
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 1,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "gen_random_uuid()",
+          "generation_expression": null
+        },
+        {
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 2,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 3,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "member_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 4,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 5,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "'active'::text",
+          "generation_expression": null
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 6,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        },
+        {
+          "name": "cancelled_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 7,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "cancelled_by",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 8,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "cancel_reason",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 9,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 10,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "completed_by",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": true,
+          "position": 11,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        }
+      ],
+      "relationships": [
+        {
+          "columns": [
+            "school_id",
+            "cancelled_by"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "reservations_school_id_cancelled_by_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "user_id"
+          ],
+          "referenced_relation": "memberships"
+        },
+        {
+          "columns": [
+            "school_id",
+            "completed_by"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "reservations_school_id_completed_by_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "user_id"
+          ],
+          "referenced_relation": "memberships"
+        },
+        {
+          "columns": [
+            "school_id",
+            "item_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "reservations_school_id_item_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "id"
+          ],
+          "referenced_relation": "items"
+        },
+        {
+          "columns": [
+            "school_id",
+            "member_id"
+          ],
+          "cardinality": "many-to-one",
+          "is_one_to_one": false,
+          "foreign_key_name": "reservations_school_id_member_id_fkey",
+          "referenced_schema": "public",
+          "referenced_columns": [
+            "school_id",
+            "user_id"
+          ],
+          "referenced_relation": "memberships"
+        }
+      ]
+    },
+    {
+      "name": "schools",
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 1,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "gen_random_uuid()",
+          "generation_expression": null
+        },
+        {
+          "name": "name",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 2,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "slug",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 3,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "enabled_categories",
+          "type": {
+            "kind": "b",
+            "name": "_text",
+            "schema": "pg_catalog",
+            "category": "A",
+            "is_array": true,
+            "formatted": "text[]",
+            "element_name": "text",
+            "element_schema": "pg_catalog"
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 4,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "ARRAY['clothing'::text, 'textbook'::text]",
+          "generation_expression": null
+        },
+        {
+          "name": "pickup_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 5,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "term_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 6,
+          "generated": "",
+          "has_default": false,
+          "default_expression": null,
+          "generation_expression": null
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "identity": "",
+          "nullable": false,
+          "position": 7,
+          "generated": "",
+          "has_default": true,
+          "default_expression": "now()",
+          "generation_expression": null
+        }
+      ],
+      "relationships": []
+    }
+  ],
+  "functions": [
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_release_reason",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2,
+          "has_default": false
+        }
+      ],
+      "name": "cancel_reservation",
+      "return_type": {
+        "kind": "p",
+        "name": "record",
+        "schema": "pg_catalog",
+        "category": "P",
+        "is_array": false,
+        "formatted": "record",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": true,
+      "returns_table": true,
+      "return_columns": [
+        {
+          "mode": "t",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3
+        },
+        {
+          "mode": "t",
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4
+        },
+        {
+          "mode": "t",
+          "name": "item_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "t",
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        },
+        {
+          "mode": "t",
+          "name": "reservation_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 7
+        },
+        {
+          "mode": "t",
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 8
+        },
+        {
+          "mode": "t",
+          "name": "changed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 9
+        }
+      ],
+      "argument_signature": "p_reservation_id uuid, p_release_reason text",
+      "identity_arguments": "p_reservation_id uuid, p_release_reason text"
+    },
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        }
+      ],
+      "name": "complete_pickup",
+      "return_type": {
+        "kind": "p",
+        "name": "record",
+        "schema": "pg_catalog",
+        "category": "P",
+        "is_array": false,
+        "formatted": "record",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": true,
+      "returns_table": true,
+      "return_columns": [
+        {
+          "mode": "t",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2
+        },
+        {
+          "mode": "t",
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3
+        },
+        {
+          "mode": "t",
+          "name": "item_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4
+        },
+        {
+          "mode": "t",
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "t",
+          "name": "reservation_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        },
+        {
+          "mode": "t",
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 7
+        },
+        {
+          "mode": "t",
+          "name": "changed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 8
+        }
+      ],
+      "argument_signature": "p_reservation_id uuid",
+      "identity_arguments": "p_reservation_id uuid"
+    },
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_category",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_details",
+          "type": {
+            "kind": "b",
+            "name": "jsonb",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "jsonb",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_storage_code",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4,
+          "has_default": false
+        }
+      ],
+      "name": "intake_item",
+      "return_type": {
+        "kind": "p",
+        "name": "record",
+        "schema": "pg_catalog",
+        "category": "P",
+        "is_array": false,
+        "formatted": "record",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": true,
+      "returns_table": true,
+      "return_columns": [
+        {
+          "mode": "t",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "t",
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        },
+        {
+          "mode": "t",
+          "name": "item_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 7
+        },
+        {
+          "mode": "t",
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 8
+        },
+        {
+          "mode": "t",
+          "name": "reservation_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 9
+        },
+        {
+          "mode": "t",
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 10
+        },
+        {
+          "mode": "t",
+          "name": "changed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 11
+        }
+      ],
+      "argument_signature": "p_school_id uuid, p_category text, p_details jsonb, p_storage_code text",
+      "identity_arguments": "p_school_id uuid, p_category text, p_details jsonb, p_storage_code text"
+    },
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_access_code",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_display_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2,
+          "has_default": false
+        }
+      ],
+      "name": "join_demo_school",
+      "return_type": {
+        "kind": "c",
+        "name": "memberships",
+        "schema": "public",
+        "category": "C",
+        "is_array": false,
+        "formatted": "memberships",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": false,
+      "returns_table": false,
+      "return_columns": [
+        {
+          "mode": "composite",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1
+        },
+        {
+          "mode": "composite",
+          "name": "user_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2
+        },
+        {
+          "mode": "composite",
+          "name": "role",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3
+        },
+        {
+          "mode": "composite",
+          "name": "active",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4
+        },
+        {
+          "mode": "composite",
+          "name": "display_label",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "composite",
+          "name": "created_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        }
+      ],
+      "argument_signature": "p_access_code text, p_display_label text",
+      "identity_arguments": "p_access_code text, p_display_label text"
+    },
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_inspection_confirmed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2,
+          "has_default": false
+        }
+      ],
+      "name": "publish_item",
+      "return_type": {
+        "kind": "p",
+        "name": "record",
+        "schema": "pg_catalog",
+        "category": "P",
+        "is_array": false,
+        "formatted": "record",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": true,
+      "returns_table": true,
+      "return_columns": [
+        {
+          "mode": "t",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3
+        },
+        {
+          "mode": "t",
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4
+        },
+        {
+          "mode": "t",
+          "name": "item_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "t",
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        },
+        {
+          "mode": "t",
+          "name": "reservation_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 7
+        },
+        {
+          "mode": "t",
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 8
+        },
+        {
+          "mode": "t",
+          "name": "changed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 9
+        }
+      ],
+      "argument_signature": "p_item_id uuid, p_inspection_confirmed boolean",
+      "identity_arguments": "p_item_id uuid, p_inspection_confirmed boolean"
+    },
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        }
+      ],
+      "name": "reserve_item",
+      "return_type": {
+        "kind": "p",
+        "name": "record",
+        "schema": "pg_catalog",
+        "category": "P",
+        "is_array": false,
+        "formatted": "record",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": true,
+      "returns_table": true,
+      "return_columns": [
+        {
+          "mode": "t",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2
+        },
+        {
+          "mode": "t",
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3
+        },
+        {
+          "mode": "t",
+          "name": "item_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4
+        },
+        {
+          "mode": "t",
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "t",
+          "name": "reservation_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        },
+        {
+          "mode": "t",
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 7
+        },
+        {
+          "mode": "t",
+          "name": "changed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 8
+        }
+      ],
+      "argument_signature": "p_item_id uuid",
+      "identity_arguments": "p_item_id uuid"
+    },
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_reason",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2,
+          "has_default": false
+        }
+      ],
+      "name": "retire_item",
+      "return_type": {
+        "kind": "p",
+        "name": "record",
+        "schema": "pg_catalog",
+        "category": "P",
+        "is_array": false,
+        "formatted": "record",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": true,
+      "returns_table": true,
+      "return_columns": [
+        {
+          "mode": "t",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3
+        },
+        {
+          "mode": "t",
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4
+        },
+        {
+          "mode": "t",
+          "name": "item_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "t",
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        },
+        {
+          "mode": "t",
+          "name": "reservation_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 7
+        },
+        {
+          "mode": "t",
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 8
+        },
+        {
+          "mode": "t",
+          "name": "changed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 9
+        }
+      ],
+      "argument_signature": "p_item_id uuid, p_reason text",
+      "identity_arguments": "p_item_id uuid, p_reason text"
+    },
+    {
+      "args": [
+        {
+          "mode": "i",
+          "name": "p_item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 1,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_details",
+          "type": {
+            "kind": "b",
+            "name": "jsonb",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "jsonb",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 2,
+          "has_default": false
+        },
+        {
+          "mode": "i",
+          "name": "p_storage_code",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 3,
+          "has_default": false
+        }
+      ],
+      "name": "update_item_details",
+      "return_type": {
+        "kind": "p",
+        "name": "record",
+        "schema": "pg_catalog",
+        "category": "P",
+        "is_array": false,
+        "formatted": "record",
+        "element_name": null,
+        "element_schema": null
+      },
+      "returns_set": true,
+      "returns_table": true,
+      "return_columns": [
+        {
+          "mode": "t",
+          "name": "school_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 4
+        },
+        {
+          "mode": "t",
+          "name": "item_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 5
+        },
+        {
+          "mode": "t",
+          "name": "item_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 6
+        },
+        {
+          "mode": "t",
+          "name": "reservation_id",
+          "type": {
+            "kind": "b",
+            "name": "uuid",
+            "schema": "pg_catalog",
+            "category": "U",
+            "is_array": false,
+            "formatted": "uuid",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 7
+        },
+        {
+          "mode": "t",
+          "name": "reservation_status",
+          "type": {
+            "kind": "b",
+            "name": "text",
+            "schema": "pg_catalog",
+            "category": "S",
+            "is_array": false,
+            "formatted": "text",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 8
+        },
+        {
+          "mode": "t",
+          "name": "completed_at",
+          "type": {
+            "kind": "b",
+            "name": "timestamptz",
+            "schema": "pg_catalog",
+            "category": "D",
+            "is_array": false,
+            "formatted": "timestamp with time zone",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 9
+        },
+        {
+          "mode": "t",
+          "name": "changed",
+          "type": {
+            "kind": "b",
+            "name": "bool",
+            "schema": "pg_catalog",
+            "category": "B",
+            "is_array": false,
+            "formatted": "boolean",
+            "element_name": null,
+            "element_schema": null
+          },
+          "nullable": null,
+          "position": 10
+        }
+      ],
+      "argument_signature": "p_item_id uuid, p_details jsonb, p_storage_code text",
+      "identity_arguments": "p_item_id uuid, p_details jsonb, p_storage_code text"
+    }
+  ],
+  "exported_at": "2026-10-18T20:54:53.73014+00:00",
+  "format_version": 1,
+  "server_version": "17.11",
+  "rpc_nullability": "not declared by PostgreSQL function signatures"
+}
