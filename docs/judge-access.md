@@ -2,7 +2,7 @@
 
 ## Release status and address
 
-SupplyLoop is live at **https://leeohwang.github.io/supplyloop/** from the approved public repository `leeohwang/supplyloop`. GitHub Pages build and deployment succeeded, HTTPS returned HTTP 200, and the public browser walkthrough passed on October 18, 2026. No GitHub login is required. The registration release is commit `d637ddc2ea5eef4b27c7e02a185d9f6f950b76ae`; its successful [deployment run](https://github.com/leeohwang/supplyloop/actions/runs/39166150609) includes type checking, lint, 16 unit tests, and production build.
+SupplyLoop is live at **https://leeohwang.github.io/supplyloop/** from the approved public repository `leeohwang/supplyloop`. GitHub Pages build and deployment succeeded, HTTPS returned HTTP 200, and the public browser walkthrough passed on October 18, 2026. No GitHub login is required. The registration release and phone pickup fix were verified through commit `d637ddc2ea5eef4b27c7e02a185d9f6f950b76ae`; its successful [deployment run](https://github.com/leeohwang/supplyloop/actions/runs/39166150609) includes type checking, lint, 16 unit tests, and production build. Subsequent documentation and responsive heading-spacing updates preserve the same authentication and enrollment flow.
 
 The selected setup uses a repository named `supplyloop`, the `main` branch, and the Vite base `/supplyloop/`. Renaming the repository or adding a custom domain requires reviewing the base path before another release. Navigation stays within the page, so reviewers should enter through `/supplyloop/` rather than an invented nested route.
 

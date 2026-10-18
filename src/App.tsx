@@ -27,13 +27,13 @@ function SignIn({ onSignIn, onRegister, onModeChange, pending, error, notice }: 
   return <main id="main-content" tabIndex={-1} className="signin-layout">
     <div className="signin-story">
       <p className="eyebrow">A shared shelf. A stronger school.</p>
-      <h1>Good things<br />deserve a<br /><em>next chapter.</em></h1>
+      <h1>Good things <br />deserve a <br /><em>next chapter.</em></h1>
       <p className="signin-intro">Find clothing and textbooks your school community is ready to pass along.</p>
       <div className="community-illustration" aria-hidden="true"><div className="illustration-orbit" /><div className="illustration-card garment"><Icon type="clothing" /><span>Ready to wear again</span></div><div className="illustration-card book"><Icon type="textbook" /><span>Another term ahead</span></div><div className="illustration-loop"><Icon type="loop" /></div><span className="illustration-spark spark-one">✳</span><span className="illustration-spark spark-two">+</span></div>
       <div className="signin-principles"><span><Icon type="check" />Within your school</span><span><Icon type="check" />Reviewed by staff</span><span><Icon type="check" />Free to keep</span></div>
     </div>
     <section className="signin-card" aria-labelledby="signin-title">
-      <span className="eyebrow">Welcome to SupplyLoop</span><h2 id="signin-title">{registering ? <>Create your<br />demo account.</> : <>Your community<br />starts here.</>}</h2><p>{registering ? 'Create an account, then enter the organizer’s private code to join fictional School A as a student.' : 'Sign in with your demo account, including the student or manager account supplied privately by the organizer.'}</p>
+      <span className="eyebrow">Welcome to SupplyLoop</span><h2 id="signin-title">{registering ? <>Create your <br />demo account.</> : <>Your community <br />starts here.</>}</h2><p>{registering ? 'Create an account, then enter the organizer’s private code to join fictional School A as a student.' : 'Sign in with your demo account, including the student or manager account supplied privately by the organizer.'}</p>
       <div className="auth-switch" role="group" aria-label="Account access"><button type="button" aria-pressed={!registering} disabled={pending} onClick={() => changeMode(false)}>Sign in</button><button type="button" aria-pressed={registering} disabled={pending} onClick={() => changeMode(true)}>Register for demo</button></div>
       {registering && <div className="demo-auth-note"><strong>A real account for fictional data</strong><p>Email ownership and school identity are not verified. No confirmation email is sent. Choose a unique password for this demo; account creation alone does not grant school access.</p></div>}
       {configurationError ? <div className="notice error" role="alert"><div><strong>Connection setup needed</strong><p>{configurationError}</p></div></div> : <form onSubmit={event => { event.preventDefault(); void (registering ? onRegister : onSignIn)(email.trim(), password) }}>
