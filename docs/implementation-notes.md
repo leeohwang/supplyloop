@@ -2,7 +2,7 @@
 
 ## Research checkpoint — October 18, 2026
 
-Status: the prototype is connected to the approved hosted project. Three reviewed migrations are applied, including real demo account registration and private-code enrollment. All 20 ordinary-session hosted API scenarios and 16 unit tests pass, along with type checking, lint, and production build. Both categories previously completed the browser handoff workflow. Managers use Manager desk only; students alone reserve and receive items. GitHub Pages hosting at `/supplyloop/` is approved and being deployed. See `docs/verification.md` for evidence and limits.
+Status: the prototype is live at `https://leeohwang.github.io/supplyloop/`, connected to the approved hosted project. Three reviewed migrations are applied, including real demo account registration and private-code enrollment. All 20 ordinary-session hosted API scenarios and 16 unit tests pass, along with type checking, lint, and production build. Public desktop/phone registration and a new student's manager-confirmed handoff were verified. A phone pickup-code overflow was fixed and retested on the deployed app. Managers use Manager desk only; students alone reserve and receive items. See `docs/verification.md` for evidence and limits.
 
 ## Confirmed user choices
 

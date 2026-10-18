@@ -2,13 +2,15 @@
 
 ## Release status and address
 
-The owner approved a public repository at `leeohwang/supplyloop` and GitHub Pages at `https://leeohwang.github.io/supplyloop/`. Deployment is being prepared; this document does not establish that the public site has succeeded. Share the URL only after checking the deployed version.
+SupplyLoop is live at **https://leeohwang.github.io/supplyloop/** from the approved public repository `leeohwang/supplyloop`. GitHub Pages build and deployment succeeded, HTTPS returned HTTP 200, and the public browser walkthrough passed on October 18, 2026. No GitHub login is required. The registration release is commit `d637ddc2ea5eef4b27c7e02a185d9f6f950b76ae`; its successful [deployment run](https://github.com/leeohwang/supplyloop/actions/runs/39166150609) includes type checking, lint, 16 unit tests, and production build.
 
 The selected setup uses a repository named `supplyloop`, the `main` branch, and the Vite base `/supplyloop/`. Renaming the repository or adding a custom domain requires reviewing the base path before another release. Navigation stays within the page, so reviewers should enter through `/supplyloop/` rather than an invented nested route.
 
 ## Reviewer walkthrough
 
 Request the existing student and manager login details privately from the organizer. Use accounts from the same fictional school for one complete handoff. Credentials are not included in this document or the public site. Reviewers may also create their own School A student account using the private demo code described below. No GitHub account is needed to open the published site.
+
+The organizer's local `JUDGE-ACCESS.private.local` file contains the private logins, enrollment code, and a short walkthrough. Keep that file outside the public repository and share it only through the approved private submission channel.
 
 1. Open the site in a fresh browser or private window. Check the persistent **Fictional demo data** notice, then expand **Demo guide: try both roles** on the sign-in page.
 2. Sign in as a manager. **Manager desk** receives clothing and physical textbooks, saves incomplete drafts, and publishes complete items after inspection. Give a new demo item an easily recognized label and note its category details. A manager manages stock and collection; students reserve and receive items.
@@ -26,7 +28,7 @@ There is no public reset button. The organizer must coordinate any restoration b
 
 ## Registering a student account
 
-The approved registration flow uses email and password, followed by a fictional display label and the private demo code supplied by the organizer. It grants only student access to School A; it offers no manager role or school selection. Existing fixed-role accounts remain available for the two-school walkthrough. The implementation is ready and the enrollment migration is applied. Hosted authentication configuration, registration acceptance, and public-site verification are still pending at the time of this update.
+The registration flow uses email and password, followed by a fictional display label and the private demo code supplied by the organizer. It grants only student access to School A; it offers no manager role or school selection. Existing fixed-role accounts remain available for the two-school walkthrough. The enrollment migration and private hash configuration are installed; the approved unconfirmed email signup is enabled. All 20 hosted API scenarios pass, and both desktop and phone-sized public registration/enrollment have been exercised successfully.
 
 Use an email address you control and a unique password. Email confirmation is intentionally disabled for this demo, so registration has no email wait and does not verify ownership of the email address. The display label is visible to the school manager; use a fictional label and enter no real student information in inventory or pickup notes. Keep the enrollment code and passwords out of public source, screenshots, and chat.
 
@@ -54,6 +56,8 @@ The owner has authorized publishing this repository. The following settings stil
 The app uses password sign-in and does not process email login callbacks. The owner approved enabling email/password signup with email confirmation disabled for this fictional demo. Apply and verify the enrollment migration and private code before enabling the new flow. GitHub Pages configuration alone does not change Supabase authentication settings or grant school access.
 
 ## Verify before sharing
+
+The selected backend is still on Supabase Free. Low activity over seven days can pause it; the owner should open the app and check sign-in, catalog, and a normal manager/student flow before judging, and resume the project in Supabase if necessary. A paid plan avoids automatic inactivity pausing, but no upgrade or recurring monitor has been created. [Supabase project-pausing documentation](https://supabase.com/docs/guides/platform/free-project-pausing).
 
 - Open the actual published `/supplyloop/` URL in a fresh browser without a GitHub login. Verify that JavaScript and styles load from `/supplyloop/`, the sign-in page is usable, and the demo guide and fictional-data notice are visible.
 - Complete the student/manager handoff above against the hosted database, including a refresh, sign-out, and School B login. Check desktop and phone layouts; a local development walkthrough does not verify the deployed address.
