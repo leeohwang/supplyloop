@@ -1,4 +1,6 @@
-# SupplyLoop verification — October 18, 2026
+# SupplyLoop verification
+
+The October 18 sections below describe the deployed demo. The October 23 candidate and its remaining activation checks are recorded separately at the end.
 
 Verified against dedicated fictional Supabase project `myyfdtqpeqbhnxwlpkeg`, PostgreSQL 17.11. No production or real student data was used.
 
@@ -62,3 +64,24 @@ The GitHub Pages app at `https://leeohwang.github.io/supplyloop/` was verified o
 Network loss and deliberately delayed responses were not experimentally injected. Their handling has source-review evidence and error-normalization unit coverage; the complete failure UI and timing behavior remain unverified under those conditions. The Supabase SDK's shared-profile, cross-tab ordering of delayed sign-in/signup responses is also unverified; guarded component callbacks do not establish cancellation of SDK session changes. Phone viewport testing does not establish behavior on every physical mobile browser or on another physical network.
 
 GitHub Pages deployment and public browser/registration checks are complete. The backend remains on the approved Supabase Free plan, which can pause after seven days of low activity; the owner should verify availability before judging or explicitly select a paid plan. No upgrade or recurring automation was created. Optional unmet needs and shortage summaries are outside this core implementation. Real-school onboarding, privacy, retention, operational inspection, and pickup policy require human decisions before a real pilot.
+
+## October 23 email-confirmation candidate — activation pending
+
+The email upgrade is prepared and has not replaced the deployed October 18 flow. Resend verified the owned sending domain, and the required Cloudflare records are installed. Supabase's new-password minimum was raised to twelve, saved, and verified; all six existing fixed passwords meet that length and were not changed. The Site URL and sole allowed redirect are the exact published `/supplyloop/` address. Actual custom SMTP activation still requires the owner's private restricted key entry. No mailbox confirmation, live email-template change, fourth hosted migration, or new public deployment is claimed complete.
+
+| Candidate check | Result and scope |
+| --- | --- |
+| `npm run check` | Passed on the exact materialized candidate |
+| `npm run lint` | Passed on that candidate |
+| `npm test` | 42 passed: 17 error boundaries and 25 actual-SDK lifecycle cases; no failures/cancellations/skips |
+| `npm run build` | Passed; approximately 513 kB main JavaScript chunk, 144 kB gzip; nonblocking Vite size advisory |
+| Compiled private-value scan | Three built files, sixteen private configuration values checked, explicitly including the operator secret key, zero matches |
+| Core hosted API baseline | 15 passed with ordinary authenticated sessions before email cutover |
+| Isolated PostgreSQL 17.11 enrollment checks | Passed independently by implementation and QA, including strict recent OTP claims, helper permissions, preserved memberships, and concurrent enrollment |
+| Updated enrollment suite | Five real-OTP-session scenarios prepared; pending controlled inbox/session and hosted cutover |
+
+The source-level late-verification issue was reproduced with the actual pinned Supabase SDK and fake transport. The fix coordinates complete explicit SDK actions across tabs, guards stale headers/body responses, and accepts the authoritative session only after settlement. Tests cover persistence windows, signup returning no session, queued timeouts and recovery, ordinary refresh, unsupported primitives, independent Auth transport deadlines, and local-only logout recovery. A disposable prior-settlement-policy control failed the targeted queued-timeout test. These tests send no real email and use no real credential or backend request; they do not establish real inbox delivery or browser network injection.
+
+The rebuilt static preview was tested against the real hosted backend. School A student sign-in opened Find/My pickups; School A manager sign-in opened only Manager desk, and manager login survived refresh. A second tab shared the authorized session and sign-out cleared private views across tabs. A fresh School B student sign-in showed School B, student navigation, its catalog and personal pickups, and no old School A account context or manager navigation. The phone layout measured a 375-pixel document/content width at a 390 × 844 viewport, with no horizontal document overflow. The confirmation-recovery panel opened and focused its heading; code input uses eight digits and one-time-code autocomplete, and registration alone enforces the twelve-character client minimum. No new account or email was requested during these preview checks. Test logins were signed out and temporary browser pages were closed afterward.
+
+This is new-build preview and simulated timing evidence. Real signup/code delivery, resend/verification, hosted recent-OTP enrollment, and the complete public-origin student/manager handoff remain required before the new release is called ready for recording. Earlier autoconfirmed accounts do not prove mailbox ownership. Browser checks do not establish every physical device/network; ordinary access tokens retain their configured lifetime after sign-out, and a local-only recovery cannot prove server-side revocation.

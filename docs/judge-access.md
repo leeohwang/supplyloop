@@ -4,6 +4,8 @@
 
 SupplyLoop is live at **https://leeohwang.github.io/supplyloop/** from the approved public repository `leeohwang/supplyloop`. GitHub Pages build and deployment succeeded, HTTPS returned HTTP 200, and the public browser walkthrough passed on October 18, 2026. No GitHub login is required. The registration release and phone pickup fix were verified through commit `d637ddc2ea5eef4b27c7e02a185d9f6f950b76ae`; its successful [deployment run](https://github.com/leeohwang/supplyloop/actions/runs/39166150609) includes type checking, lint, 16 unit tests, and production build. Subsequent documentation and responsive heading-spacing updates preserve the same authentication and enrollment flow.
 
+**October 23 email upgrade is awaiting activation.** The instructions below describe the verified October 18 deployment. Real emailed confirmation is prepared in source and the sending domain is verified, but private SMTP-key entry, hosted configuration/migration, deployment, and inbox/browser acceptance remain pending. Do not describe the earlier autoconfirmed accounts as proof of mailbox ownership. See [current integration status](implementation-notes.md#email-confirmation-integration--october-23-2026).
+
 The selected setup uses a repository named `supplyloop`, the `main` branch, and the Vite base `/supplyloop/`. Renaming the repository or adding a custom domain requires reviewing the base path before another release. Navigation stays within the page, so reviewers should enter through `/supplyloop/` rather than an invented nested route.
 
 ## Reviewer walkthrough
@@ -36,7 +38,7 @@ Account creation alone must not expose any school workspace. If the code is reje
 
 ## Repository owner: GitHub settings
 
-The owner has authorized publishing this repository. The following settings still need to be completed and verified during deployment.
+The owner authorized publication, and these settings were configured for the successful October 18 deployment. Preserve them during subsequent releases; this list also documents how to reproduce the setup.
 
 1. Use the approved public GitHub repository `leeohwang/supplyloop`, with `main` as the deployment branch. Review the files before the first push: ignored local environment files, passwords, session tokens, the enrollment code, and server credentials must stay outside Git.
 2. In **Settings → Actions → General**, enable GitHub Actions and allow the official `actions/*` actions used by `.github/workflows/pages.yml`, including their pinned commits. Organization policy may also control this setting. The workflow declares its own token permissions; it does not need a personal access token.

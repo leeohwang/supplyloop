@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
+import { createAuthLifecycle, AuthCoordinationUnavailable, AuthRecoveryRequired, signOutWithLocalFallback } from './authLifecycle'
+import type { AuthActionKind } from './authLifecycle'
+import { AppError } from './errors'
 
 const projectUrl = import.meta.env.VITE_SUPABASE_URL?.trim() ?? ''
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() ?? ''
@@ -23,6 +26,54 @@ function validateConfiguration(): string | null {
 }
 
 export const configurationError = validateConfiguration()
-export const supabase = configurationError ? null : createClient<Database>(projectUrl, publishableKey, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+const storageKey = configurationError ? '' : `sb-${new URL(projectUrl).hostname.split('.')[0]}-auth-token`
+let sharedStorage: Storage | null = null
+try { sharedStorage = window.localStorage } catch { /* Explicit auth actions fail closed without shared storage. */ }
+const lifecycle = createAuthLifecycle({
+  scope: storageKey, authUrl: configurationError ? 'https://invalid.local/auth/v1' : `${projectUrl.replace(/\/$/, '')}/auth/v1`,
+  storage: sharedStorage,
+  withLock: typeof navigator !== 'undefined' && navigator.locks ? (name, signal, work) => navigator.locks.request(name, { mode: 'exclusive', signal }, work) : null,
+  subscribeStorage: typeof window === 'undefined' ? null : listener => {
+    const onStorage = (event: StorageEvent) => listener(event.key)
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  },
+  fetch: (input, init) => fetch(input, init),
 })
+export const supabase = configurationError ? null : createClient<Database>(projectUrl, publishableKey, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey },
+  global: { fetch: lifecycle.fetch },
+})
+
+export const acceptAuthEvent = lifecycle.acceptEvent
+export const subscribeAuthTransition = lifecycle.subscribe
+export const authRecoveryRequired = lifecycle.needsRecovery
+export const authContext = lifecycle.context
+export const authActionKind = lifecycle.currentKind
+
+export async function signOutAccount() {
+  return authSessionAction('signout', null, db => signOutWithLocalFallback({
+    signOut: () => db.auth.signOut({ scope: 'local' }),
+    assertCurrent: lifecycle.assertLocalSignout,
+    removeSession: () => { if (!sharedStorage) throw new AuthRecoveryRequired(); sharedStorage.removeItem(storageKey) },
+  }))
+}
+
+export async function authSessionAction<T>(kind: AuthActionKind, actor: { userId: string; email: string } | null, work: (client: NonNullable<typeof supabase>) => Promise<T>): Promise<T> {
+  const db = supabase
+  if (!db) throw new AuthCoordinationUnavailable()
+  return lifecycle.run(kind, async () => {
+    if (kind === 'signout') return work(db)
+    const { data, error } = await db.auth.getSession()
+    if (error) throw error
+    if (actor) {
+      if (!data.session || data.session.user.id !== actor.userId || data.session.user.email?.toLowerCase() !== actor.email.toLowerCase()) throw new AppError('AUTH_REQUIRED')
+    } else if (data.session) {
+      // A latest guest intent supersedes an older call that crossed its save
+      // boundary while this action waited for the application lock.
+      const { error: failure } = await db.auth.signOut({ scope: 'local' })
+      if (failure) throw new AuthRecoveryRequired()
+    }
+    return work(db)
+  })
+}

@@ -1,12 +1,14 @@
 # SupplyLoop
 
-A school community prototype for finding, reserving, and collecting donated clothing and reusable physical textbooks. Built with React, TypeScript, Vite, and Supabase Auth/PostgreSQL. All accounts, schools, and inventory are fictional.
+A school community prototype for finding, reserving, and collecting donated clothing and reusable physical textbooks. Built with React, TypeScript, Vite, and Supabase Auth/PostgreSQL. Schools, inventory, and fixed-role test identities are fictional; reviewer registration creates real authentication accounts.
 
 The core flow is manager intake and inspection → available catalog → member reservation → manager-confirmed pickup. Each item represents one physical object. The database enforces school isolation, roles, state transitions, and atomic reservations.
 
 ## Current checkpoint
 
 The app is live at **https://leeohwang.github.io/supplyloop/**, connected to the dedicated `supplyloop-demo` backend (`myyfdtqpeqbhnxwlpkeg`, North Virginia, PostgreSQL 17.11). Six public application tables have RLS enabled, eight RPCs are installed, and the six original fictional accounts remain available. Real demo registration creates an email/password account, then grants School A student access only after checking a private code. Email ownership and school identity are explicitly unverified for this demo. All 20 hosted API scenarios and 16 unit tests pass, with public desktop and phone-sized registration/hand-off verification. Managers use Manager desk only; students reserve and receive items. See [verification evidence and limits](docs/verification.md) and [judge access](docs/judge-access.md).
+
+**October 23 source upgrade, activation pending:** the next release adds actual emailed confirmation through Resend before new school enrollment, including older autoconfirmed accounts without memberships. The sending domain is verified and the frontend/database changes are prepared; the owner's private SMTP-key entry, coordinated hosted activation, and real inbox acceptance are still required. Existing memberships and fixed logins are preserved. Today's core API baseline passes 15 scenarios; the updated source passes 42 unit tests, type checking, lint, and a production build. Delayed authentication and interrupted logout are covered against the pinned SDK with simulated transport; this does not prove real email delivery. See [integration status](docs/implementation-notes.md#email-confirmation-integration--october-23-2026).
 
 ## Run locally
 
@@ -29,6 +31,8 @@ Open the localhost URL printed by Vite. For a production-build preview:
 npm run build
 npm run preview
 ```
+
+Use a current browser with Web Locks, `AbortSignal.any`, and shared site storage enabled. The app coordinates account changes across tabs in the same browser profile and refuses unsafe fallback when coordination is unavailable. Reload older app tabs after an upgrade. New passwords require at least 12 characters; the six existing fixed credentials are unchanged.
 
 ## Demo accounts and inventory
 
@@ -63,6 +67,8 @@ Once account provisioning has produced `.env.test.local`, run the hosted accepta
 ```sh
 npm run test:api
 ```
+
+That command runs the 15 core scenarios without sending email. The email-confirmation release separates its five enrollment scenarios so ordinary checks never sign up generated email addresses. Copy `.env.email-test.example` to private `.env.email-test.local`, select an inbox you control, and follow [the controlled email-session recipe](tests/EMAIL_CONFIRMATION.md) before running `npm run test:registration`. The controlled account must remain unenrolled until that suite runs. `npm run test:enrollment-security` runs the isolated PostgreSQL regression harness; it never connects to the hosted database.
 
 API tests sign in as ordinary fictional accounts, including two concurrent reservation requests. They create labeled QA items and leave their history in the demo. They never use the operator key or reset existing records. See [test coverage and browser checks](tests/README.md).
 

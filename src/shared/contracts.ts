@@ -130,7 +130,7 @@ export interface MutationResult {
 
 export type ApplicationErrorCode = 'AUTH_REQUIRED' | 'NOT_AUTHORIZED' | 'NOT_FOUND'
   | 'INVALID_INPUT' | 'INCOMPLETE_ITEM' | 'INVALID_STATE' | 'ITEM_UNAVAILABLE'
-  | 'CONFLICT' | 'SERVER_ERROR' | 'NETWORK_ERROR' | 'DEMO_ACCESS_DENIED'
+  | 'CONFLICT' | 'SERVER_ERROR' | 'NETWORK_ERROR' | 'DEMO_ACCESS_DENIED' | 'EMAIL_CONFIRMATION_REQUIRED'
 
 export interface CatalogFilters {
   category: Category

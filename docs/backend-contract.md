@@ -247,6 +247,8 @@ Proposed domain failures use dedicated five-character PostgreSQL SQLSTATE codes.
 | `SL006` | `INVALID_STATE` | Requested transition is not allowed, including cancelled pickup or correction to reserved/transferred stock |
 | `SL007` | `ITEM_UNAVAILABLE` | Reservation lost a race or item is no longer available |
 | `SL008` | `CONFLICT` | A relevant uniqueness/state consistency guard prevented the operation |
+| `SL009` | `DEMO_ACCESS_DENIED` | Private school join code is wrong or new enrollment is unavailable |
+| `SL010` | `EMAIL_CONFIRMATION_REQUIRED` | New enrollment needs a recent emailed code for the current account email; added by the October 23 migration |
 
 Wrong-school targets and another member's private reservations must not leak their existence through distinct API behavior. Resolve target access using authorized school/ownership context; return the same `SL003` code and safe message for missing and inaccessible objects. Only after establishing that the actor may read the target may an action-specific role/state failure be returned. QA must compare the direct API responses, not merely the interface presentation.
 
@@ -302,5 +304,15 @@ Registration is two stages: `signUp` creates an Auth account; authenticated `joi
 A valid ledger-backed retry returns the original active student membership without changing its label or requiring the code again; this resolves lost-response retries after a rotation. Existing memberships, manager accounts, deactivated students, and later role changes cannot be rewritten or reactivated through registration. An absent or disabled configuration fails closed for new enrollment. `SL009` maps to the safe `DEMO_ACCESS_DENIED` message; raw SQL errors or access-code contents never appear in the interface.
 
 The UI must distinguish account creation from enrollment. If the second step fails or the browser closes, the account can sign in again and retry joining. It must not falsely announce school access before authoritative membership loading succeeds. Registration never resets inventory or rewrites existing accounts. The existing restoration guard still refuses when additional memberships exist; registered accounts must not silently be treated as disposable fixtures.
+
+### October 23 email-confirmation upgrade
+
+This source upgrade is prepared and locally tested; hosted activation and actual inbox acceptance are coordinated separately. It supersedes the earlier no-email-verification policy for new school enrollment. The user selected real emailed confirmation for older autoconfirmed accounts that never joined a school, while preserving existing memberships and fixed logins.
+
+New signup uses password signup, an eight-digit personal email code, and `verifyOtp` with type `email` before the separate private school join form. Codes expire after 3,600 seconds; explicit resend is subject to server limits and a 60-second interface cooldown. Older unenrolled accounts explicitly request an existing-account email OTP with `shouldCreateUser: false`. Auth account creation, code delivery, and code verification each grant no school access by themselves.
+
+The new migration keeps `join_demo_school(p_access_code text, p_display_label text)` and its membership result unchanged. For new enrollment, an inaccessible no-argument boolean helper checks signed JWT claims for an email-only, nonanonymous `authenticated` actor with `otp` authentication within 3,600 seconds (60 seconds of future clock tolerance), and checks that the email matches the actor's current confirmed Auth email. The helper is owned by trusted `postgres`, has an empty search path, and is executable only by `supplyloop_owner`; it grants no Auth table privileges to browser roles or the application owner. Missing, malformed, stale, password-only, phone, and mismatched-email proofs fail closed with `SL010` before any enrollment write. Editable Auth metadata is never proof.
+
+Existing ledger-backed membership retries and rejection of other existing memberships retain their original order and behavior. No school membership, fixed account, item, reservation, event, or enrollment history is rewritten. Legacy confirmation timestamps are not described as mailbox-ownership evidence. Only the current school-code RPC grants student membership after its independent private-code check.
 
 Official signup, Auth configuration, SMTP, database-function security, RLS, and PostgreSQL 17 locking/hash documentation were checked for this extension. Hosted application and authorization verification must be recorded separately from preparation.

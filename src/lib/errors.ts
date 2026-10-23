@@ -10,6 +10,7 @@ const messages: Record<ApplicationErrorCode, string> = {
   ITEM_UNAVAILABLE: 'Someone else reserved this item, or it is no longer available.',
   CONFLICT: 'The record changed while you were working. Refresh and try again.',
   DEMO_ACCESS_DENIED: 'That demo access code is invalid or unavailable. Ask the organizer for the current private code.',
+  EMAIL_CONFIRMATION_REQUIRED: 'Confirm your email address before joining the demo school.',
   SERVER_ERROR: 'We could not complete that request. Please try again.',
   NETWORK_ERROR: 'We could not reach SupplyLoop. Check your connection and try again. If you submitted a change, refresh to check its outcome.',
 }
@@ -27,6 +28,7 @@ const codes: Record<string, ApplicationErrorCode> = {
   SL001: 'AUTH_REQUIRED', SL002: 'NOT_AUTHORIZED', SL003: 'NOT_FOUND',
   SL004: 'INVALID_INPUT', SL005: 'INCOMPLETE_ITEM', SL006: 'INVALID_STATE',
   SL007: 'ITEM_UNAVAILABLE', SL008: 'CONFLICT', SL009: 'DEMO_ACCESS_DENIED',
+  SL010: 'EMAIL_CONFIRMATION_REQUIRED',
   '22P02': 'INVALID_INPUT', '42501': 'NOT_AUTHORIZED', '23505': 'CONFLICT',
   '40P01': 'CONFLICT', '40001': 'CONFLICT', '55P03': 'CONFLICT',
   PGRST301: 'AUTH_REQUIRED', PGRST302: 'AUTH_REQUIRED', PGRST303: 'AUTH_REQUIRED',

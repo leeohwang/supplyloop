@@ -3,7 +3,7 @@ import { describe, test } from 'node:test'
 import { AppError, normalizeError } from '../../src/lib/errors.ts'
 
 // Node 22.20 strips erasable TypeScript without a transpiler. No browser/backend is required.
-// Official runtime documentation checked 2026-10-18:
+// Official runtime documentation rechecked 2026-10-23:
 // https://nodejs.org/download/release/v22.20.0/docs/api/typescript.html
 const sensitive = 'PRIVATE_SQL_ROW_TOKEN_DO_NOT_DISPLAY'
 
@@ -22,6 +22,7 @@ describe('Error transport boundaries', () => {
     SL001: 'AUTH_REQUIRED', SL002: 'NOT_AUTHORIZED', SL003: 'NOT_FOUND',
     SL004: 'INVALID_INPUT', SL005: 'INCOMPLETE_ITEM', SL006: 'INVALID_STATE',
     SL007: 'ITEM_UNAVAILABLE', SL008: 'CONFLICT', SL009: 'DEMO_ACCESS_DENIED',
+    SL010: 'EMAIL_CONFIRMATION_REQUIRED',
   }
   for (const [code, expected] of Object.entries(domainCases)) {
     test(`${code} maps by SQLSTATE and ignores raw text/HTTP status`, () => {

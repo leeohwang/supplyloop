@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { supabase, configurationError } from './lib/supabase'
+import { supabase, configurationError, authSessionAction, acceptAuthEvent, subscribeAuthTransition, authRecoveryRequired, authContext, authActionKind, signOutAccount } from './lib/supabase'
 import { loadSchools } from './lib/api'
 import { normalizeError } from './lib/errors'
 import { useResource } from './lib/useResource'
@@ -10,15 +10,20 @@ import { Pickups } from './features/reservations/Pickups'
 import { Manager } from './features/manager/Manager'
 import { JudgeGuide } from './features/auth/JudgeGuide'
 import { DemoEnrollment } from './features/auth/DemoEnrollment'
+import { EmailConfirmation } from './features/auth/EmailConfirmation'
+import { authErrorMessage, authFailureCode, clearPendingEmail, readPendingEmail, savePendingEmail, uncertainAuthFailure } from './features/auth/emailCode'
+import type { PendingEmailConfirmation } from './features/auth/emailCode'
 import type { Membership, School } from './shared/contracts'
 
 function Brand({ large = false }: { large?: boolean }) {
   return <div className={`brand ${large ? 'brand-large' : ''}`}><span className="brand-mark"><Icon type="loop" /></span><span>SupplyLoop<span className="brand-dot">.</span></span></div>
 }
 
-function SignIn({ onSignIn, onRegister, onModeChange, pending, error, notice }: {
+function SignIn({ onSignIn, onRegister, onModeChange, onRecover, onConfirmationEmailChange, onCancelConfirmation, confirmation, pending, error, notice }: {
   onSignIn: (email: string, password: string) => Promise<void>; onRegister: (email: string, password: string) => Promise<void>
   onModeChange: () => void; pending: boolean; error: string | null; notice: string | null
+  confirmation: PendingEmailConfirmation | null; onRecover: (email: string) => void
+  onConfirmationEmailChange: (email: string) => void; onCancelConfirmation: () => void
 }) {
   const [registering, setRegistering] = useState(false)
   const [email, setEmail] = useState('')
@@ -33,17 +38,25 @@ function SignIn({ onSignIn, onRegister, onModeChange, pending, error, notice }: 
       <div className="signin-principles"><span><Icon type="check" />Within your school</span><span><Icon type="check" />Reviewed by staff</span><span><Icon type="check" />Free to keep</span></div>
     </div>
     <section className="signin-card" aria-labelledby="signin-title">
+      {confirmation ? <>
+        <span className="eyebrow" id="signin-title">Your personal email code</span>
+        {notice && <p className="auth-result" role="status">{notice}</p>}
+        <ErrorNotice error={error} />
+        <EmailConfirmation confirmation={confirmation} kind="signup" onEmailChange={onConfirmationEmailChange} onBack={() => { setRegistering(false); setPassword(''); onCancelConfirmation() }} />
+      </> : <>
       <span className="eyebrow">Welcome to SupplyLoop</span><h2 id="signin-title">{registering ? <>Create your <br />demo account.</> : <>Your community <br />starts here.</>}</h2><p>{registering ? 'Create an account, then enter the organizer’s private code to join fictional School A as a student.' : 'Sign in with your demo account, including the student or manager account supplied privately by the organizer.'}</p>
       <div className="auth-switch" role="group" aria-label="Account access"><button type="button" aria-pressed={!registering} disabled={pending} onClick={() => changeMode(false)}>Sign in</button><button type="button" aria-pressed={registering} disabled={pending} onClick={() => changeMode(true)}>Register for demo</button></div>
-      {registering && <div className="demo-auth-note"><strong>A real account for fictional data</strong><p>Email ownership and school identity are not verified. No confirmation email is sent. Choose a unique password for this demo; account creation alone does not grant school access.</p></div>}
+      {registering && <div className="demo-auth-note"><strong>A real account for fictional data</strong><p>New registrations confirm their email with a personal code, then use the organizer’s private school join code. School identity is not verified. Choose a unique password; an account alone grants no school access.</p></div>}
       {configurationError ? <div className="notice error" role="alert"><div><strong>Connection setup needed</strong><p>{configurationError}</p></div></div> : <form onSubmit={event => { event.preventDefault(); void (registering ? onRegister : onSignIn)(email.trim(), password) }}>
         <Field label="Email address"><input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required value={email} onChange={event => setEmail(event.target.value)} disabled={pending} placeholder="Your demo account email" /></Field>
-        <Field label="Password"><input name="password" type="password" autoComplete={registering ? 'new-password' : 'current-password'} required value={password} onChange={event => setPassword(event.target.value)} disabled={pending} /></Field>
+        <Field label="Password" help={registering ? 'Use a unique password with at least 12 characters.' : undefined}><input name="password" type="password" autoComplete={registering ? 'new-password' : 'current-password'} minLength={registering ? 12 : undefined} required value={password} onChange={event => setPassword(event.target.value)} disabled={pending} /></Field>
         <ErrorNotice error={error} />
         {notice && <p className="auth-result" role="status">{notice}</p>}
         <button type="submit" className="button full signin-button" disabled={pending}>{pending ? registering ? 'Creating your account…' : 'Signing in…' : registering ? 'Create demo account' : 'Sign in'}<Icon type="arrow" /></button>
       </form>}
-      <div className="signin-help"><span aria-hidden="true">↳</span><p>{registering ? 'Registered before, or unsure whether your request completed? Sign in with the same details to continue enrollment. Ask the organizer if you need help.' : 'School access and roles come from saved memberships. New demo registrations join only School A as students after entering the private access code.'}</p></div>
+      {!configurationError && <button type="button" className="text-button confirmation-recovery" disabled={pending} onClick={() => { setPassword(''); onRecover(email.trim()) }}>Finish email confirmation</button>}
+      <div className="signin-help"><span aria-hidden="true">↳</span><p>{registering ? 'Registered before, or unsure whether your request completed? Sign in with the same details or finish email confirmation. Keep the personal email code separate from the school join code.' : 'School access and roles come from saved memberships. New school enrollment requires an email code and the private School A join code. Existing student and manager logins remain available.'}</p></div>
+      </>}
       <JudgeGuide />
     </section>
   </main>
@@ -69,6 +82,7 @@ function SignedIn({ session, onSignOut }: { session: Session; onSignOut: () => v
   const schools = useResource(`${session.user.id}:memberships`, () => loadSchools(session.user.id))
   const [selectedId, setSelectedId] = useState('')
   const [enrollmentVisible, setEnrollmentVisible] = useState(false)
+  const [confirmingEmail, setConfirmingEmail] = useState(false)
   const authorized = schools.data?.find(entry => entry.school.id === selectedId) ?? schools.data?.[0]
   const showEnrollment = !authorized && (enrollmentVisible || schools.data?.length === 0)
   function recheckEnrollment() { setEnrollmentVisible(true); schools.reload() }
@@ -76,25 +90,10 @@ function SignedIn({ session, onSignOut }: { session: Session; onSignOut: () => v
     <header className="topbar"><Brand /><div className="account-controls">
       {authorized && <Field label="Your school" className="school-select"><select value={authorized.school.id} onChange={event => setSelectedId(event.target.value)}>{schools.data?.map(entry => <option key={entry.school.id} value={entry.school.id}>{entry.school.name}</option>)}</select></Field>}
       {authorized && <div className="account-label"><strong>{authorized.membership.display_label}</strong><span>{authorized.membership.role === 'manager' ? 'School manager' : 'School student'}</span></div>}
-      <button className="button secondary small" onClick={onSignOut}>Sign out</button>
+      <button className="button secondary small" disabled={confirmingEmail} onClick={onSignOut}>Sign out</button>
     </div></header>
-    {showEnrollment ? <main id="main-content" tabIndex={-1} className="workspace-content enrollment-layout"><DemoEnrollment key={session.user.id} userId={session.user.id} email={session.user.email} onRecheck={recheckEnrollment} refreshing={schools.loading} membershipError={schools.error} /></main> : schools.loading ? <main id="main-content" tabIndex={-1} className="workspace-content"><Loading label="Loading your school membership…" /></main> : schools.error ? <main id="main-content" tabIndex={-1} className="workspace-content"><ErrorNotice error={schools.error} retry={schools.reload} /></main> : authorized ? <SchoolWorkspace key={`${session.user.id}:${authorized.school.id}:${authorized.membership.role}`} school={authorized.school} membership={authorized.membership} userId={session.user.id} /> : null}
+    {showEnrollment ? <main id="main-content" tabIndex={-1} className="workspace-content enrollment-layout"><DemoEnrollment key={session.user.id} userId={session.user.id} email={session.user.email} onRecheck={recheckEnrollment} refreshing={schools.loading} membershipError={schools.error} onEmailBusyChange={setConfirmingEmail} /></main> : schools.loading ? <main id="main-content" tabIndex={-1} className="workspace-content"><Loading label="Loading your school membership…" /></main> : schools.error ? <main id="main-content" tabIndex={-1} className="workspace-content"><ErrorNotice error={schools.error} retry={schools.reload} /></main> : authorized ? <SchoolWorkspace key={`${session.user.id}:${authorized.school.id}:${authorized.membership.role}`} school={authorized.school} membership={authorized.membership} userId={session.user.id} /> : null}
   </>
-}
-
-function authErrorMessage(failure: unknown, registering: boolean): string {
-  const code = failure && typeof failure === 'object' && 'code' in failure ? failure.code : null
-  if (code === 'invalid_credentials') return 'Email or password was not recognized. Check your demo account details.'
-  if (code === 'weak_password') return 'Choose a stronger, longer password and try again.'
-  if (code === 'email_address_invalid') return 'Enter a valid email address and try again.'
-  if (code === 'user_already_exists' || code === 'email_exists') return 'We could not create an account with these details. If you registered before, choose Sign in to continue enrollment.'
-  if (code === 'signup_disabled' || code === 'email_address_not_authorized') return 'Demo registration is unavailable. Ask the organizer to check account setup, or use your existing demo account.'
-  if (code === 'email_not_confirmed') return 'This account cannot sign in yet. Ask the organizer to check the demo account setup.'
-  if (code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit') return 'Too many attempts. Wait a little before trying again, or use an existing demo account.'
-  const normalized = normalizeError(failure)
-  return registering && (normalized.code === 'SERVER_ERROR' || normalized.code === 'NETWORK_ERROR')
-    ? 'We could not confirm whether registration completed. Try signing in with the same details before creating another account. Ask the organizer if you need help.'
-    : normalized.message
 }
 
 export default function App() {
@@ -104,6 +103,11 @@ export default function App() {
   const [signingOut, setSigningOut] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [authNotice, setAuthNotice] = useState<string | null>(null)
+  const [signoutNotice, setSignoutNotice] = useState<string | null>(null)
+  const [confirmation, setConfirmation] = useState<PendingEmailConfirmation | null>(readPendingEmail)
+  const [authTransition, setAuthTransition] = useState(false)
+  const [authReconciling, setAuthReconciling] = useState(false)
+  const [authRecovery, setAuthRecovery] = useState(false)
   const attempt = useRef(0)
   const authLock = useRef(false)
   const currentUserId = useRef<string | null>(null)
@@ -111,8 +115,11 @@ export default function App() {
     if (!supabase) return
     let active = true
     let events = 0
+    let reconciliation = 0
     function acceptSession(nextSession: Session | null, signedOut = false) {
       const nextUserId = nextSession?.user.id ?? null
+      if (nextSession || signedOut) { clearPendingEmail(); setConfirmation(null) }
+      if (nextSession) setSignoutNotice(null)
       if (signedOut || currentUserId.current !== nextUserId) {
         currentUserId.current = nextUserId
         attempt.current++
@@ -122,37 +129,59 @@ export default function App() {
       }
       setSession(nextSession)
       setRestoring(false)
+      setAuthReconciling(false)
     }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!active) return
-      events++
+      if (event === 'SIGNED_OUT' && authActionKind() === 'signout') { clearPendingEmail(); setConfirmation(null) }
       // Keep this callback synchronous; membership queries run in React effects.
+      if (!acceptAuthEvent(event, nextSession)) return
+      events++
       acceptSession(nextSession, event === 'SIGNED_OUT')
     })
-    const before = events
-    void supabase.auth.getSession().then(({ data, error: failure }) => {
-      if (!active || events !== before) return
-      if (failure) setError(normalizeError(failure).message)
-      acceptSession(data.session)
-    }).catch(failure => {
-      if (active && events === before) { setError(normalizeError(failure).message); setRestoring(false) }
+    const stopTransitions = subscribeAuthTransition(pending => {
+      if (!active) return
+      const request = ++reconciliation
+      setAuthTransition(pending)
+      const recovery = authRecoveryRequired()
+      setAuthRecovery(recovery)
+      if (pending || recovery) return
+      setAuthReconciling(true)
+      const before = events
+      const context = authContext()
+      // Reconcile after the complete SDK action, outside its auth callback.
+      void supabase!.auth.getSession().then(({ data, error: failure }) => {
+        if (!active || request !== reconciliation || events !== before || context !== authContext()) return
+        if (failure) { setError(normalizeError(failure).message); setSession(null); setRestoring(false); setAuthReconciling(false); return }
+        if (!acceptAuthEvent('INITIAL_SESSION', data.session)) return
+        acceptSession(data.session)
+      }).catch(failure => {
+        if (active && request === reconciliation && context === authContext() && !authRecoveryRequired()) { setError(normalizeError(failure).message); setRestoring(false); setAuthReconciling(false) }
+      })
     })
-    return () => { active = false; subscription.unsubscribe() }
+    return () => { active = false; stopTransitions(); subscription.unsubscribe() }
   }, [])
 
   async function signIn(email: string, password: string) {
     if (!supabase || authLock.current) return
     authLock.current = true
     const currentAttempt = ++attempt.current
-    setSigningIn(true); setError(null); setAuthNotice(null)
+    setSigningIn(true); setError(null); setAuthNotice(null); setSignoutNotice(null)
     try {
-      const { data, error: failure } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: failure } = await authSessionAction('signin', null, db => db.auth.signInWithPassword({ email, password }))
       if (currentAttempt !== attempt.current) return
-      if (failure) setError(authErrorMessage(failure, false))
+      if (failure) {
+        if (authFailureCode(failure) === 'email_not_confirmed') {
+          const saved = readPendingEmail()
+          const next = { email, sentAt: saved?.email === email ? saved.sentAt : 0 }
+          savePendingEmail(next); setConfirmation(next)
+        }
+        setError(authErrorMessage(failure, 'signin'))
+      }
       else if (!data.session) setError('Sign-in did not open a session. Try again, or ask the organizer for help.')
       // The auth listener owns session changes; request callbacks do not assign a session.
     } catch (failure) {
-      if (currentAttempt === attempt.current) setError(authErrorMessage(failure, false))
+      if (currentAttempt === attempt.current && authFailureCode(failure) !== 'AUTH_SUPERSEDED') setError(authErrorMessage(failure, 'signin'))
     } finally {
       if (currentAttempt === attempt.current) { authLock.current = false; setSigningIn(false) }
     }
@@ -162,15 +191,27 @@ export default function App() {
     if (!supabase || authLock.current) return
     authLock.current = true
     const currentAttempt = ++attempt.current
-    setSigningIn(true); setError(null); setAuthNotice(null)
+    setSigningIn(true); setError(null); setAuthNotice(null); setSignoutNotice(null)
     try {
-      const { data, error: failure } = await supabase.auth.signUp({ email, password })
+      const { data, error: failure } = await authSessionAction('signup', null, db => db.auth.signUp({ email, password }))
       if (currentAttempt !== attempt.current) return
-      if (failure) setError(authErrorMessage(failure, true))
-      else if (!data.session) setAuthNotice('No session opened. If you already registered, choose Sign in to continue. This demo sends no confirmation email; ask the organizer if sign-in does not work.')
+      if (failure) {
+        setError(authErrorMessage(failure, 'signup'))
+        if (uncertainAuthFailure(failure)) {
+          const next = { email, sentAt: Date.now() }; savePendingEmail(next); setConfirmation(next)
+        }
+      } else if (!data.session) {
+        const next = { email, sentAt: Date.now() }; savePendingEmail(next); setConfirmation(next)
+        setAuthNotice('If this account needs confirmation, check your inbox for a SupplyLoop code. Already confirmed? Return to Sign in.')
+      }
       // SIGNED_IN mounts the separate enrollment step. No code or role is sent to Auth.
     } catch (failure) {
-      if (currentAttempt === attempt.current) setError(authErrorMessage(failure, true))
+      if (currentAttempt === attempt.current && authFailureCode(failure) !== 'AUTH_SUPERSEDED') {
+        setError(authErrorMessage(failure, 'signup'))
+        if (uncertainAuthFailure(failure)) {
+          const next = { email, sentAt: Date.now() }; savePendingEmail(next); setConfirmation(next)
+        }
+      }
     } finally {
       if (currentAttempt === attempt.current) { authLock.current = false; setSigningIn(false) }
     }
@@ -179,19 +220,24 @@ export default function App() {
   async function signOut() {
     if (!supabase || signingOut) return
     const actor = currentUserId.current
+    clearPendingEmail(); setConfirmation(null)
     attempt.current++
-    setSigningOut(true); setSigningIn(false); setError(null); setAuthNotice(null)
+    setSigningOut(true); setSigningIn(false); setError(null); setAuthNotice(null); setSignoutNotice(null)
     try {
-      const { error: failure } = await supabase.auth.signOut({ scope: 'local' })
-      if (failure && currentUserId.current === actor) setError(normalizeError(failure).message)
-    } catch (failure) { if (currentUserId.current === actor) setError(normalizeError(failure).message) }
+      const result = await signOutAccount()
+      if (result.localOnly) setSignoutNotice('Signed out on this browser. The server could not confirm session revocation; sign in again to continue.')
+    } catch (failure) { if (currentUserId.current === actor && authFailureCode(failure) !== 'AUTH_SUPERSEDED') setError(authErrorMessage(failure, 'signin')) }
     finally { setSigningOut(false) }
   }
 
+  const hideWorkspace = authTransition || authReconciling || authRecovery
   return <div className="app-shell">
-    <a className="skip-link" href="#main-content">Skip to main content</a>
+    <a className="skip-link" href={hideWorkspace && !signingOut ? '#auth-transition' : '#main-content'}>Skip to main content</a>
     <div className="demo-banner"><span><i aria-hidden="true" />Fictional demo data</span><span>A shared shelf for your school.</span></div>
-    {restoring || signingOut ? <><header className="topbar"><Brand /></header><main id="main-content" tabIndex={-1} className="workspace-content"><Loading label={signingOut ? 'Signing out and clearing your workspace…' : 'Restoring your session…'} /></main></> : session ? <><SignedIn key={session.user.id} session={session} onSignOut={() => void signOut()} />{error && <div className="global-error"><ErrorNotice error={error} /></div>}</> : <><header className="topbar signin-topbar"><Brand /><span className="topbar-note">Less waste. More possibility.</span></header><SignIn onSignIn={signIn} onRegister={register} onModeChange={() => { setError(null); setAuthNotice(null) }} pending={signingIn} error={error} notice={authNotice} /></>}
+    {hideWorkspace && !signingOut && <main id="auth-transition" tabIndex={-1} className="workspace-content">{authRecovery ? <div className="notice error" role="alert"><div><strong>An account change was interrupted.</strong><p>Sign out before continuing so an earlier account is not reopened.</p><ErrorNotice error={error} /><button className="button secondary" onClick={() => void signOut()}>Sign out and retry</button></div></div> : <Loading label="Updating your signed-in session…" />}</main>}
+    <div className="auth-view" hidden={hideWorkspace && !signingOut}>
+      {restoring || signingOut ? <><header className="topbar"><Brand /></header><main id="main-content" tabIndex={-1} className="workspace-content"><Loading label={signingOut ? 'Signing out and clearing your workspace…' : 'Restoring your session…'} /></main></> : session ? <><SignedIn key={session.user.id} session={session} onSignOut={() => void signOut()} />{error && <div className="global-error"><ErrorNotice error={error} /></div>}</> : <><header className="topbar signin-topbar"><Brand /><span className="topbar-note">Less waste. More possibility.</span></header><SignIn onSignIn={signIn} onRegister={register} onModeChange={() => { setError(null); setAuthNotice(null) }} confirmation={confirmation} onRecover={email => { const next = { email, sentAt: 0 }; clearPendingEmail(); setConfirmation(next); setError(null); setAuthNotice(null) }} onConfirmationEmailChange={email => { setConfirmation({ email, sentAt: 0 }); setError(null); setAuthNotice(null) }} onCancelConfirmation={() => { clearPendingEmail(); setConfirmation(null); setError(null); setAuthNotice(null) }} pending={signingIn} error={error} notice={authNotice ?? signoutNotice} /></>}
+    </div>
     <footer className="app-footer"><span>SupplyLoop<span className="brand-dot">.</span></span><p>Shared with care. Passed on with purpose.</p><span>School community prototype</span></footer>
   </div>
 }

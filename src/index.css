@@ -39,3 +39,13 @@
 .judge-guide-content strong{color:#365c3c;font-weight:600}
 .judge-guide-content>.judge-guide-note{margin-bottom:0;padding:12px 14px;border-radius:8px;background:#f0f3e8;font-size:.72rem}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition:none!important;scroll-behavior:auto!important}}
+.email-confirmation>h2{font-family:Georgia,serif;font-weight:400;font-size:2rem;letter-spacing:-.04em;line-height:1.2;color:#365c3c;margin:12px 0 18px}
+.email-confirmation>p{font-size:.83rem;line-height:1.75;color:#63745a;margin-bottom:22px;overflow-wrap:anywhere}
+.email-confirmation input[name=email-confirmation-code]{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.2em;font-size:1.15rem}
+.email-confirmation .helper-text{font-size:.76rem;margin:0 0 20px}
+.email-code-actions{display:flex;flex-direction:column;gap:7px;margin:12px 0 18px}
+.email-confirmation>.email-delivery-help{font-size:.73rem;line-height:1.7;margin-bottom:0}
+.confirmation-recovery{display:block;margin:10px auto 0}
+.auth-view{display:contents}.auth-view[hidden]{display:none}
+@media(max-width:750px){.field input,.field select{font-size:16px}.email-confirmation>h2{font-size:1.85rem}}
+@media(max-width:450px){.item-grid,.filter-panel form,.stats-grid{grid-template-columns:1fr}.stats-grid>div+div{border-left:0;border-top:1px solid #e7ebdf}.stats-grid span{min-height:0}.stats-grid small{font-size:.68rem}.email-confirmation>h2{font-size:1.7rem}}

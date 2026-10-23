@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict'
-import { randomBytes, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { after, before, describe, test } from 'node:test'
 import {
   accountNames, DemoApi, expectFailure, expectHidden, expectPermissionFailure,
   mutation, readTestConfig, safeCode,
 } from '../helpers/supabase.mjs'
+import { assertRecentEmailOtp, readOtpSession } from '../helpers/otp-session.mjs'
 
-// Explicit hosted acceptance: creates one retained fictional Auth account and
-// school enrollment per run. No operator key, resets, or account deletion.
+// Explicit hosted acceptance after a human receives and verifies a real email
+// code. This suite never signs up, sends email, reads a password for the supplied
+// student, or uses an operator key. It retains enrollment and item history.
 describe('SupplyLoop demo registration', { concurrency: false, timeout: 180_000 }, () => {
   let api
   let student
@@ -22,32 +24,30 @@ describe('SupplyLoop demo registration', { concurrency: false, timeout: 180_000 
     code = process.env.DEMO_REGISTRATION_ACCESS_CODE
     assert.ok(code, 'Load the private .env.registration.local enrollment code')
     api = new DemoApi(readTestConfig())
+    student = await readOtpSession(process.env.DEMO_REGISTRATION_SESSION_FILE)
+    const response = await api.request(student, '/auth/v1/user')
+    assert.ok(response.ok, `Supplied ordinary session failed Auth validation (${safeCode(response)}; HTTP ${response.status})`)
+    assertRecentEmailOtp(student.accessToken, response.data, api.config.url)
+    assert.ok((await api.rows(student, 'memberships')).length === 0,
+      'The controlled account is already enrolled; use an explicitly authorized unenrolled account rather than resetting history')
+    assert.ok(!JSON.stringify(response.data).includes(code), 'The community code appeared in Auth user data')
     manager = await api.login('A_MANAGER')
     schoolA = (await api.rows(manager, 'schools', { slug: 'eq.school-a' }))[0].id
     const other = await api.login('B_MANAGER')
     fixed.push(other)
     schoolB = (await api.rows(other, 'schools', { slug: 'eq.school-b' }))[0].id
-    const response = await api.request(null, '/auth/v1/signup', {
-      method: 'POST', body: {
-        email: `registration-${randomUUID()}@supplyloop.example`,
-        password: `Aa1!${randomBytes(24).toString('base64url')}`,
-      },
-    })
-    assert.ok(response.ok, `Plain demo signup failed (${safeCode(response)}; HTTP ${response.status})`)
-    assert.ok(typeof response.data?.access_token === 'string' && typeof response.data?.refresh_token === 'string' && typeof response.data?.user?.id === 'string', 'Demo signup must create a real immediate Auth session')
-    student = { name: 'NEW_DEMO_STUDENT', userId: response.data.user.id, accessToken: response.data.access_token, refreshToken: response.data.refresh_token }
-    assert.ok(!JSON.stringify(response.data.user).includes(code), 'Access code appeared in Auth signup data')
   })
 
   after(async () => {
     if (!api) return
-    for (const actor of [student, manager, ...fixed].filter(Boolean)) {
+    // The supplied OTP session belongs to the human/browser and remains active.
+    for (const actor of [manager, ...fixed].filter(Boolean)) {
       const result = await api.logout(actor)
       assert.ok(result.ok, `Registration test session cleanup failed (HTTP ${result.status})`)
     }
   })
 
-  test('plain Auth signup grants no school access and private registration state is inaccessible', async () => {
+  test('email confirmation alone grants no school access and private registration state is inaccessible', async () => {
     for (const table of ['schools', 'memberships', 'items', 'item_staff', 'reservations', 'item_events']) {
       expectHidden(await api.read(student, table), `New account before enrollment: ${table}`)
     }
