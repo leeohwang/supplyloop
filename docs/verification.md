@@ -37,7 +37,7 @@ The uploaded ZIP's SHA-256 was `dcf946dd187b914db17c921c92274933f4f34809593354de
 | `assets/index-BhuDatqB.css` | `88284e5112fcb3a8a47f0daf356193c0fbd614f2692e59f5f8b89ef221ec4ae8` |
 | `assets/index-C_72GE6N.js` | `2ec6f1af1b7a5a01c8a1146cd94cca1dcac9f9a758e408e861515dc8f0d85987` |
 
-The follow-up evidence edit changes only this record and implementation notes; it does not alter the 32 build inputs, hosted templates, Auth configuration, or deployed artifact. GitHub workflow `394728700` (`ci.yml`) is active; the former Pages workflow `388769787` remains disabled. Source validation does not republish the retired site.
+The follow-up evidence edits affect documentation only; they do not alter the 32 build inputs, hosted templates, Auth configuration, or deployed artifact. GitHub workflow `394728700` (`ci.yml`) is active. The former Pages workflow `388769787` was disabled before retirement; after its source path was removed from `main`, GitHub reported it as `deleted` at 01:11:30 UTC. That final post-publication check also confirmed apex file identity, old-site 404, and the unchanged LUMEN root. Source validation does not republish the retired site.
 
 ### Focused new-origin browser walkthrough
 
