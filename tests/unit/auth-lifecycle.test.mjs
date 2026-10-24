@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createClient } from '@supabase/supabase-js'
-import { createAuthLifecycle, signOutWithLocalFallback } from '../../src/lib/authLifecycle.ts'
+import { createAuthLifecycle, isPasswordRecoveryKind, signOutWithLocalFallback } from '../../src/lib/authLifecycle.ts'
+import { finishPasswordRecovery } from '../../src/lib/passwordRecovery.ts'
 
 // Actual pinned Supabase JS 2.118.0; all transport/storage/locks below are fake.
 // There is no native fetch fallback, credential file, inbox, or hosted request.
@@ -105,17 +106,21 @@ async function waitAtGate(barrier, signal) {
   } finally { signal?.removeEventListener('abort', cancel) }
 }
 
-function fixture({ initial = null, timeoutMs = 2_000, guarded = true, signupSession = false } = {}) {
+function fixture({ initial = null, timeoutMs = 2_000, guarded = true, signupSession = false, strictRecovery = false } = {}) {
   const scope = `qa-auth-lifecycle-${++fixtureNumber}`
   const shared = sharedStorage()
   const withLock = fakeLocks()
   const tabs = []
   const calls = []
   const delays = []
+  const failures = []
+  const passwordCommits = []
   const refreshes = new Map()
   let tokenNumber = 0
   let intentNumber = 0
   let refreshRejected = false
+  let recoveryUsed = false
+  let nextUser = null
 
   function session(actor, method = 'otp') {
     const user = { ...actors[actor], aud: 'authenticated', role: 'authenticated',
@@ -141,12 +146,22 @@ function fixture({ initial = null, timeoutMs = 2_000, guarded = true, signupSess
     assert.ok(url.origin === origin, 'Fake transport must never contact another origin')
     const path = url.pathname.replace('/auth/v1/', '')
     const grant = url.searchParams.get('grant_type')
-    calls.push({ path, grant }) // Presence/routing only, never credentials.
+    const method = init.method ?? 'GET'
     const body = typeof init.body === 'string' ? JSON.parse(init.body) : {}
+    calls.push({ path, grant, method, verificationType: body.type ?? null,
+      scope: url.searchParams.get('scope'), redirectTo: url.searchParams.get('redirect_to') }) // Routing only, never passwords or codes.
     const actor = body.email === actors.B.email ? 'B' : 'A'
     let data
     let status = 200
-    if (path === 'verify') data = session(actor)
+    const failureIndex = failures.findIndex(value => value.path === path && (!value.method || value.method === method))
+    const failure = failureIndex >= 0 ? failures.splice(failureIndex, 1)[0] : null
+    if (failure) { status = failure.status; data = { code: failure.code, msg: 'Fabricated Auth rejection' } }
+    else if (path === 'verify') {
+      if (strictRecovery && (body.type !== 'recovery' || body.token !== '87654321' || recoveryUsed)) {
+        status = 403; data = { code: 'otp_expired', msg: 'Fabricated invalid or used code' }
+      } else { if (strictRecovery) recoveryUsed = true; data = session(actor) }
+    }
+    else if (path === 'recover') data = {}
     else if (path === 'token' && grant === 'password') data = session(actor, 'password')
     else if (path === 'token' && grant === 'refresh_token') {
       const previous = refreshes.get(body.refresh_token)
@@ -160,13 +175,17 @@ function fixture({ initial = null, timeoutMs = 2_000, guarded = true, signupSess
     else if (path === 'user') {
       const bearer = new Headers(init.headers).get('Authorization')?.replace(/^Bearer /, '')
       const payload = JSON.parse(Buffer.from(bearer.split('.')[1], 'base64url').toString())
-      data = { ...actors[payload.sub === actors.B.id ? 'B' : 'A'], is_anonymous: false }
+      const authorizedActor = payload.sub === actors.B.id ? 'B' : 'A'
+      const replyActor = method === 'GET' && nextUser ? nextUser : authorizedActor
+      if (method === 'GET') nextUser = null
+      if (method === 'PUT' && body.password !== undefined) passwordCommits.push(actors[authorizedActor].id)
+      data = { ...actors[replyActor], is_anonymous: false }
     } else throw new Error('Unexpected fake Auth route; native networking is prohibited')
-    const index = delays.findIndex(delay => delay.path === path && (!delay.grant || delay.grant === grant))
+    const index = delays.findIndex(delay => delay.path === path && (!delay.grant || delay.grant === grant) && (!delay.method || delay.method === method))
     const delay = index >= 0 ? delays.splice(index, 1)[0] : null
     if (delay?.barrier.stage === 'fetch') await waitAtGate(delay.barrier, init.signal)
     const response = new Response(status === 204 ? null : JSON.stringify(data), {
-      status, headers: { 'Content-Type': 'application/json' },
+      status, headers: { 'Content-Type': 'application/json', 'X-Supabase-Api-Version': '2024-01-01' },
     })
     if (delay?.barrier.stage === 'body') {
       const read = response.json.bind(response)
@@ -209,7 +228,7 @@ function fixture({ initial = null, timeoutMs = 2_000, guarded = true, signupSess
       if (lifecycle.acceptEvent(event, next)) accepted.push({ event, actor: next?.user.id ?? null })
     })
     const unsubscribe = lifecycle.subscribe(value => pending.push(value))
-    const result = { client, lifecycle, store, pending, seen, accepted,
+    const result = { client, lifecycle, store, pending, seen, accepted, scope,
       pauseNextWrite() { writeBarrier = gate('storage'); return writeBarrier },
       close: async () => { unsubscribe(); subscription.unsubscribe(); await client.auth.dispose() },
     }
@@ -218,11 +237,13 @@ function fixture({ initial = null, timeoutMs = 2_000, guarded = true, signupSess
     return result
   }
 
-  return { scope, shared, tab, calls, initialSession,
+  return { scope, shared, tab, calls, initialSession, passwordCommits,
     rejectRefresh() { refreshRejected = true },
-    delay(path, stage = 'fetch', ignoreAbort = false, grant = null) {
+    failNext(path, code, status = 400, method = null) { failures.push({ path, code, status, method }) },
+    replyNextUser(actor) { nextUser = actor },
+    delay(path, stage = 'fetch', ignoreAbort = false, grant = null, method = null) {
       const barrier = gate(stage, ignoreAbort)
-      delays.push({ path, barrier, grant })
+      delays.push({ path, barrier, grant, method })
       return barrier
     },
     stored() { const value = shared.values.get(scope); return value ? JSON.parse(value) : null },
@@ -261,6 +282,26 @@ function signUp(tab, actor = 'B') {
     await requireSuccess(tab.client.auth.signOut({ scope: 'local' }))
     return requireSuccess(tab.client.auth.signUp({ email: actors[actor].email, password: 'fake-unit-password' }))
   })
+}
+
+function requestRecovery(tab, email = actors.A.email) {
+  return tab.lifecycle.run('recover-request', async () => {
+    await requireSuccess(tab.client.auth.signOut({ scope: 'local' }))
+    return requireSuccess(tab.client.auth.resetPasswordForEmail(email))
+  })
+}
+
+function recover(tab, actor = 'A', token = '87654321', type = 'recovery') {
+  return tab.lifecycle.run('recover', async () => {
+    await requireSuccess(tab.client.auth.signOut({ scope: 'local' }))
+    return requireSuccess(tab.client.auth.verifyOtp({ email: actors[actor].email, token, type }))
+  })
+}
+
+function resetPassword(tab, actor = 'A', password = 'fabricated-new-password-12', removeSession = () => tab.store.removeItem(tab.scope)) {
+  return tab.lifecycle.run('reset', () => finishPasswordRecovery(tab.client.auth, {
+    userId: actors[actor].id, email: actors[actor].email,
+  }, password, { assertCurrent: tab.lifecycle.assertCurrent, removeSession }))
 }
 
 test('control: unguarded pinned SDK restores a late OTP session after sign-out', { timeout: 5_000 }, async t => {
@@ -635,4 +676,282 @@ test('a superseded sign-out cannot use local fallback to clear the newer account
   delayed.released.resolve()
   await tick()
   assert.equal(env.stored()?.user.id, actors.B.id)
+})
+
+test('recovery requests use the real SDK recover endpoint and return no session for either address fixture', { timeout: 5_000 }, async t => {
+  const env = fixture()
+  t.after(env.close)
+  const a = await env.tab('A')
+  const known = await requestRecovery(a)
+  const unknown = await requestRecovery(a, 'missing@auth-unit.invalid')
+  assert.deepEqual(known.data, unknown.data, 'Fabricated known/unknown successes must have the same neutral result shape')
+  assert.equal(env.stored(), null)
+  const sends = env.calls.filter(value => value.path === 'recover')
+  assert.equal(sends.length, 2)
+  assert.ok(sends.every(value => value.method === 'POST'))
+  assert.ok(!env.calls.some(value => value.path === 'signup' || value.path === 'otp'), 'Recovery must not create an account or substitute a sign-in OTP request')
+  assert.equal(env.passwordCommits.length, 0)
+})
+
+test('SDK recovery verification propagates wrong-type, wrong-code and consumed-code denials', { timeout: 5_000 }, async t => {
+  // Fake GoTrue protocol responses test SDK/application handling, not hosted
+  // token validation. A real one-use recovery email remains a browser check.
+  const env = fixture({ strictRecovery: true })
+  t.after(env.close)
+  const a = await env.tab('A')
+  for (const [code, type] of [['87654321', 'email'], ['00000000', 'recovery']]) {
+    assert.equal((await capture(recover(a, 'A', code, type))).error?.code, 'otp_expired')
+    assert.equal(env.stored(), null, 'A denied recovery response must not create a session')
+  }
+  const result = await recover(a)
+  assert.equal(result.data.user.id, actors.A.id)
+  assert.ok(a.seen.some(value => value.event === 'PASSWORD_RECOVERY'))
+  await signOut(a)
+  assert.equal((await capture(recover(a))).error?.code, 'otp_expired')
+  assert.equal(env.stored(), null)
+  assert.equal(env.passwordCommits.length, 0)
+  assert.equal(env.calls.filter(value => value.path === 'verify').at(-1).verificationType, 'recovery')
+})
+
+test('recovery purpose survives SDK refresh and a new tab until coordinated sign-out', { timeout: 5_000 }, async t => {
+  const env = fixture({ strictRecovery: true })
+  t.after(env.close)
+  const a = await env.tab('A')
+  await recover(a)
+  assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), true)
+  assert.equal(a.pending.at(-1), false)
+  const b = await env.tab('restored')
+  assert.equal((await b.client.auth.getSession()).data.session.user.id, actors.A.id)
+  assert.equal(isPasswordRecoveryKind(b.lifecycle.currentKind()), true, 'Restoration must not erase the workspace-masking purpose')
+  await requireSuccess(b.client.auth.refreshSession())
+  assert.equal(isPasswordRecoveryKind(b.lifecycle.currentKind()), true, 'TOKEN_REFRESHED must not authorize the school workspace during recovery')
+  assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), true)
+  await signOut(b)
+  assert.equal(env.stored(), null)
+  assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), false)
+  assert.equal(isPasswordRecoveryKind(b.lifecycle.currentKind()), false)
+})
+
+for (const stage of ['fetch', 'body']) {
+  test(`a newer account action cancels recovery mail transport delayed at ${stage}`, { timeout: 5_000 }, async t => {
+    const env = fixture()
+    t.after(env.close)
+    const a = await env.tab('A')
+    const b = await env.tab('B')
+    const delayed = env.delay('recover', stage, true)
+    const old = capture(requestRecovery(a))
+    await delayed.entered.promise
+    const latest = capture(signIn(b))
+    await delayed.aborted.promise
+    assert.equal((await old).error?.code, 'AUTH_SUPERSEDED')
+    assert.ok(!(await latest).error)
+    assert.equal(env.stored()?.user.id, actors.B.id)
+    delayed.released.resolve()
+    await tick()
+    assert.equal(env.stored()?.user.id, actors.B.id)
+    assert.equal(isPasswordRecoveryKind(b.lifecycle.currentKind()), false)
+  })
+}
+
+test('a late recovery verification save cannot replace the newer password sign-in', { timeout: 5_000 }, async t => {
+  const env = fixture({ strictRecovery: true })
+  t.after(env.close)
+  const a = await env.tab('A')
+  const b = await env.tab('B')
+  const saving = a.pauseNextWrite()
+  const old = capture(recover(a))
+  await saving.entered.promise
+  const latest = capture(signIn(b))
+  await tick()
+  assert.ok(!env.calls.some(value => value.path === 'token'), 'The newer account must wait for the entire recovery SDK save')
+  saving.released.resolve()
+  assert.equal((await old).error?.code, 'AUTH_SUPERSEDED')
+  assert.ok(!(await latest).error)
+  assert.equal(env.stored()?.user.id, actors.B.id)
+  assert.ok(!a.accepted.some(value => value.event === 'PASSWORD_RECOVERY'))
+})
+
+test('a newer no-session recovery request clears an older provisional recovery save', { timeout: 5_000 }, async t => {
+  const env = fixture({ strictRecovery: true })
+  t.after(env.close)
+  const a = await env.tab('A')
+  const b = await env.tab('B')
+  const saving = a.pauseNextWrite()
+  const old = capture(recover(a))
+  await saving.entered.promise
+  const latest = capture(requestRecovery(b))
+  await tick()
+  saving.released.resolve()
+  assert.equal((await old).error?.code, 'AUTH_SUPERSEDED')
+  assert.ok(!(await latest).error)
+  assert.equal(env.stored(), null, 'A request returning no session cannot expose the previous recovery account')
+  assert.equal(b.lifecycle.currentKind(), 'recover-request')
+  assert.equal(isPasswordRecoveryKind(b.lifecycle.currentKind()), false)
+})
+
+for (const initial of [null, 'B']) {
+  test(`password completion refuses ${initial ? 'a different account session' : 'a missing session'} before PUT`, { timeout: 5_000 }, async t => {
+    const env = fixture({ initial })
+    t.after(env.close)
+    const a = await env.tab('A')
+    await assert.rejects(resetPassword(a))
+    assert.ok(!env.calls.some(value => value.path === 'user' && value.method === 'PUT'))
+    assert.equal(env.passwordCommits.length, 0)
+    assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), true)
+  })
+}
+
+test('password completion checks live Auth identity before issuing a password PUT', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A')
+  env.replyNextUser('B')
+  await assert.rejects(resetPassword(a))
+  assert.ok(env.calls.some(value => value.path === 'user' && value.method === 'GET'))
+  assert.ok(!env.calls.some(value => value.path === 'user' && value.method === 'PUT'))
+  assert.equal(env.passwordCommits.length, 0)
+})
+
+test('the twelve-character password minimum is enforced before any Auth request', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A')
+  await assert.rejects(resetPassword(a, 'A', '12345678901'))
+  assert.equal(env.calls.length, 0)
+  assert.equal(env.passwordCommits.length, 0)
+  assert.equal(env.stored()?.user.id, actors.A.id)
+})
+
+for (const code of ['weak_password', 'same_password']) {
+  test(`SDK ${code} denial keeps recovery masked without a password commit or cleanup`, { timeout: 5_000 }, async t => {
+    const env = fixture({ initial: 'A' })
+    t.after(env.close)
+    const a = await env.tab('A')
+    env.failNext('user', code, 422, 'PUT')
+    assert.equal((await capture(resetPassword(a))).error?.code, code)
+    assert.equal(env.passwordCommits.length, 0)
+    assert.ok(!env.calls.some(value => value.path === 'logout'))
+    assert.equal(env.stored()?.user.id, actors.A.id)
+    assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), true)
+  })
+}
+
+test('successful actual-SDK password completion updates only its actor and signs out globally', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A')
+  const result = await resetPassword(a)
+  assert.equal(result.localOnly, false)
+  assert.deepEqual(env.passwordCommits, [actors.A.id])
+  assert.equal(env.calls.filter(value => value.path === 'user' && value.method === 'PUT').length, 1)
+  assert.equal(env.calls.find(value => value.path === 'logout')?.scope, 'global')
+  assert.ok(a.seen.some(value => value.event === 'USER_UPDATED'))
+  assert.ok(a.seen.some(value => value.event === 'SIGNED_OUT'))
+  assert.equal(env.stored(), null)
+  assert.ok(!JSON.stringify([...env.shared.values]).includes('fabricated-new-password-12'), 'The password must not enter shared storage')
+})
+
+for (const stage of ['fetch', 'body']) {
+  test(`a later account wins over a password-update response delayed at ${stage}`, { timeout: 5_000 }, async t => {
+    const env = fixture({ initial: 'A' })
+    t.after(env.close)
+    const a = await env.tab('A')
+    const b = await env.tab('B')
+    const delayed = env.delay('user', stage, true, null, 'PUT')
+    const old = capture(resetPassword(a))
+    await delayed.entered.promise
+    // This fake server has already committed A's update. Cancellation cannot
+    // promise to undo it; it must prevent stale session/UI restoration instead.
+    assert.deepEqual(env.passwordCommits, [actors.A.id])
+    const latest = capture(signIn(b))
+    await delayed.aborted.promise
+    assert.equal((await old).error?.code, 'AUTH_SUPERSEDED')
+    assert.ok(!(await latest).error)
+    assert.equal(env.stored()?.user.id, actors.B.id)
+    delayed.released.resolve()
+    await tick()
+    assert.equal(env.stored()?.user.id, actors.B.id)
+    assert.deepEqual(env.passwordCommits, [actors.A.id], 'A stale form must never update account B')
+    assert.ok(!a.accepted.some(value => value.event === 'USER_UPDATED'))
+  })
+}
+
+test('a password update already inside SDK persistence cannot restore its account after a newer login', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A')
+  const b = await env.tab('B')
+  const saving = a.pauseNextWrite()
+  const old = capture(resetPassword(a))
+  await saving.entered.promise
+  const latest = capture(signIn(b))
+  await tick()
+  assert.ok(!env.calls.some(value => value.path === 'token'), 'A later mutation must wait until SDK updateUser has settled')
+  saving.released.resolve()
+  assert.equal((await old).error?.code, 'AUTH_SUPERSEDED')
+  assert.ok(!(await latest).error)
+  assert.equal(env.stored()?.user.id, actors.B.id)
+  assert.deepEqual(env.passwordCommits, [actors.A.id])
+  assert.ok(!a.accepted.some(value => value.event === 'USER_UPDATED'))
+})
+
+test('an uncertain committed password response retains recovery purpose without claiming cleanup', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A', { networkTimeoutMs: 15 })
+  const delayed = env.delay('user', 'body', true, null, 'PUT')
+  const result = capture(resetPassword(a))
+  await delayed.entered.promise
+  assert.ok((await result).error)
+  assert.deepEqual(env.passwordCommits, [actors.A.id], 'The test must represent a password which may already have changed')
+  assert.ok(!env.calls.some(value => value.path === 'logout'), 'An unconfirmed update must not be reported as successful cleanup')
+  assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), true)
+  assert.equal(env.stored()?.user.id, actors.A.id)
+  delayed.released.resolve()
+  await tick()
+  assert.equal(env.stored()?.user.id, actors.A.id)
+})
+
+test('failed global logout after a confirmed update uses explicit local fallback and reports localOnly', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A')
+  env.failNext('logout', 'unexpected_failure', 500, 'POST')
+  const result = await resetPassword(a)
+  assert.equal(result.localOnly, true)
+  assert.deepEqual(env.passwordCommits, [actors.A.id])
+  assert.equal(env.stored(), null)
+  assert.ok(a.seen.some(value => value.event === 'SIGNED_OUT'))
+})
+
+test('a failed local removal after password update keeps explicit recovery required', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A')
+  env.failNext('logout', 'unexpected_failure', 500, 'POST')
+  await assert.rejects(resetPassword(a, 'A', 'fabricated-new-password-12', () => {
+    throw new DOMException('Fabricated storage removal failure', 'SecurityError')
+  }), error => error.code === 'AUTH_RECOVERY_REQUIRED')
+  assert.deepEqual(env.passwordCommits, [actors.A.id])
+  assert.equal(a.lifecycle.needsRecovery(), true)
+  assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), true)
+  assert.equal(a.lifecycle.acceptEvent('INITIAL_SESSION', env.stored()), false)
+})
+
+test('password completion cannot borrow the sign-out-only local removal exception after its deadline', { timeout: 5_000 }, async t => {
+  const env = fixture({ initial: 'A' })
+  t.after(env.close)
+  const a = await env.tab('A', { timeoutMs: 30, networkTimeoutMs: 1_000 })
+  const delayed = env.delay('logout', 'fetch', true)
+  let removed = false
+  const pending = capture(resetPassword(a, 'A', 'fabricated-new-password-12', () => {
+    removed = true; a.store.removeItem(env.scope)
+  }))
+  await delayed.entered.promise
+  const result = await pending
+  assert.ok(result.error)
+  assert.equal(removed, false, 'Only an explicit signout intent may clear locally after its own deadline')
+  assert.equal(isPasswordRecoveryKind(a.lifecycle.currentKind()), true)
+  delayed.released.resolve()
+  await tick()
 })

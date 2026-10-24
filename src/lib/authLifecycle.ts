@@ -1,4 +1,5 @@
-export type AuthActionKind = 'signin' | 'signup' | 'verify' | 'signout'
+export type AuthActionKind = 'signin' | 'signup' | 'verify' | 'signout' | 'recover-request' | 'recover' | 'reset'
+export function isPasswordRecoveryKind(kind: string | null) { return kind === 'recover' || kind === 'reset' }
 interface Intent { id: string; kind: AuthActionKind; pending: boolean; expiresAt: number }
 interface SharedStorage { getItem(key: string): string | null; setItem(key: string, value: string): void }
 type WithLock = <T>(name: string, signal: AbortSignal, work: () => Promise<T>) => Promise<T>
@@ -43,7 +44,7 @@ export function createAuthLifecycle(options: Options) {
     if (!raw) return null
     const value: unknown = JSON.parse(raw)
     if (!value || typeof value !== 'object' || !('id' in value) || typeof value.id !== 'string'
-      || !('kind' in value) || typeof value.kind !== 'string' || !['signin', 'signup', 'verify', 'signout'].includes(value.kind)
+      || !('kind' in value) || typeof value.kind !== 'string' || !['signin', 'signup', 'verify', 'signout', 'recover-request', 'recover', 'reset'].includes(value.kind)
       || !('pending' in value) || typeof value.pending !== 'boolean'
       || !('expiresAt' in value) || typeof value.expiresAt !== 'number' || !Number.isFinite(value.expiresAt)) throw new AuthCoordinationUnavailable()
     return value as Intent
@@ -98,7 +99,9 @@ export function createAuthLifecycle(options: Options) {
     if (url.origin !== base.origin || !(url.pathname === authPath || url.pathname.startsWith(`${authPath}/`))) return options.fetch(input, init)
     // Refresh/initialization get a finite transport deadline, independently of
     // account intents. Their normal SDK retry and session-commit guards remain.
-    const explicitEndpoint = ['verify', 'signup', 'logout'].some(endpoint => path === `/${endpoint}`)
+    const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
+    const explicitEndpoint = ['verify', 'signup', 'logout', 'recover'].some(endpoint => path === `/${endpoint}`)
+      || (path === '/user' && method === 'PUT')
       || (path === '/token' && url.searchParams.get('grant_type') === 'password')
     const intent = explicitEndpoint ? operation?.intent : undefined
     const network = new AbortController()

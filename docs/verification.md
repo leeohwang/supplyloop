@@ -1,8 +1,32 @@
 # SupplyLoop verification
 
-The Outlook recovery/enrollment and website-domain checkpoints below are current. October 18 sections are historical evidence for the former autoconfirmed registration flow. The earlier October 23 email-confirmation/public-walkthrough section retains its previous GitHub Pages scope and is supplemented by the actual apex email/enrollment checks below.
+The password-recovery, Outlook recovery/enrollment, and website-domain checkpoints below record the successive releases. October 18 sections are historical evidence for the former autoconfirmed registration flow. The earlier October 23 email-confirmation/public-walkthrough section retains its previous GitHub Pages scope and is supplemented by the actual apex email/enrollment checks below.
 
 Verified against dedicated fictional Supabase project `myyfdtqpeqbhnxwlpkeg`, PostgreSQL 17.11. School identities, inventory, labels, and pickup records are fictional; controlled registration uses real email accounts.
+
+## Password recovery — October 23, 2026
+
+The apex now has **Forgot password → Send reset code → Verify reset code → Save new password → ordinary sign-in**. **I have a reset code** supports entering an already received code without replacing it. Supabase handles the recovery request, `verifyOtp` with `type: 'recovery'`, and the password update; the existing Resend SMTP sender and TLS configuration are unchanged. No database migration, role change, or membership write is part of recovery.
+
+The recovered actor is checked against both the stored session and a live Auth user before updating the password. Recovery purpose stays attached to the accepted session across refresh/shared tabs; school screens do not mount during recovery or account reconciliation. The complete SDK password update and global sign-out run under the shared account-action lock with supersession/transport guards. Successful update returns to sign-in; a failed global logout reports any local-only fallback. Cancellation clears the current browser session. Lost update responses are treated as uncertain, with no automatic password retry. Existing access JWTs can remain valid until their normal expiry.
+
+| Release check | Result and scope |
+| --- | --- |
+| Type checking, lint, unit tests, production build | Passed from the isolated, source-matched build snapshot; **63 unit/SDK cases**, zero failures/cancellations/skips. The 21 additions exercise actual pinned SDK behavior against fabricated transport/session responses, not a hosted password change |
+| Template installation | Reset password template saved and reopened: approved subject, one Token placeholder, eight-digit/one-hour wording, only the code instructions and canonical apex link |
+| Existing email-template regression | Signup confirmation and existing-account OTP previews retain their code instructions and one canonical apex link; neither template was changed in this release |
+| Artifact/private-value scan | 73 public files, 17 private values, 34 build inputs, and 3 compiled files checked; zero credentials/private-email exposure or stale hosting paths |
+| Production upload | Cloudflare Pages production deployment `a4c336b1-8194-4a5c-b87e-fc5221ec4d54`, reviewed ZIP SHA-256 `94256d7ee75b52a185ee45ecd957dbf8e987851f1005ec2bf54d8a548618e096` |
+| Independent HTTPS verification | At **02:47:51 UTC October 24 (October 23 EDT)**, all three assets matched the reviewed manifest over valid HTTPS with correct MIME/root paths; old project remained a direct 404 and the separate LUMEN root was byte-identical |
+| Public reset request | One explicit request for the owner's existing account returned the neutral check-your-inbox response and displayed the resend countdown |
+| Actual Outlook reset-email delivery | All-folders sender/subject search showed **Your SupplyLoop password reset code**, **Inbox**, **10:49 p.m. EDT**; nothing was selected/opened and no quarantine release was performed |
+| Wrong recovery code | Rejected with the invalid/expired/used-code error; no password form or school workspace opened |
+| Fixed-account regression after deployment | All six ordinary password logins/live-user checks, original membership/role/active/label checks, single-school reads, and temporary-session local sign-outs passed; no password update or business RPC was used |
+| Real recovery and new-password acceptance | Awaiting the owner entering the received code and new password privately; no fixed demo password has been reset |
+
+The public JavaScript is `assets/index-Dkx_xM8q.js`, **523,132 bytes**, SHA-256 `cf515eb3d47306e59e7401d4bfa43731a608378e9afca768dc576ff161c947b2`. HTML SHA-256 is `3e01df598bce28705f75a4330a774e3043e95bfa819e6d5e1c2ac1eca9b74b8d`; CSS retains `88284e5112fcb3a8a47f0daf356193c0fbd614f2692e59f5f8b89ef221ec4ae8`. Vite emits its existing greater-than-500-kB chunk warning; the build succeeds. Original dependency manifests and pinned versions are unchanged. Original-folder compiler attempts stalled and were stopped; reported successful checks use the isolated snapshot with all 34 source/build hashes verified against the working tree.
+
+Current official sources were read on **October 23, 2026**, for React 19.3.1, TypeScript 6.0.2, Vite 8.3.4, Supabase JS/auth-js 2.118.0, hosted Auth 2.197.0, and PostgreSQL 17.11: [React effects](https://react.dev/reference/react/useEffect), [TypeScript narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html), [Vite build/deployment](https://vite.dev/guide/static-deploy.html), [Supabase recovery request](https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail), [verification](https://supabase.com/docs/reference/javascript/auth-verifyotp), [password update](https://supabase.com/docs/reference/javascript/auth-updateuser), [email templates](https://supabase.com/docs/guides/auth/auth-email-templates), [Resend SMTP](https://resend.com/docs/send-with-supabase-smtp), [PostgreSQL RLS](https://www.postgresql.org/docs/17/ddl-rowsecurity.html), and [Cloudflare Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/). Version-specific session/token behavior and server rate limits are documented in [backend recovery setup](../supabase/README.md#password-recovery-preparation--october-23-2026).
 
 ## Outlook recovery and apex enrollment — October 23, 2026
 

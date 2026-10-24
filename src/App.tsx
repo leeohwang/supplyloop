@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { supabase, configurationError, authSessionAction, acceptAuthEvent, subscribeAuthTransition, authRecoveryRequired, authContext, authActionKind, signOutAccount } from './lib/supabase'
+import { supabase, configurationError, authSessionAction, acceptAuthEvent, subscribeAuthTransition, authRecoveryRequired, authContext, authActionKind, signOutAccount, requestPasswordRecovery, verifyPasswordRecovery, updateRecoveredPassword } from './lib/supabase'
+import { isPasswordRecoveryKind } from './lib/authLifecycle'
+import { clearPendingPasswordReset, readPendingPasswordReset, savePendingPasswordReset } from './lib/passwordRecovery'
+import type { PendingPasswordReset } from './lib/passwordRecovery'
 import { loadSchools } from './lib/api'
 import { normalizeError } from './lib/errors'
 import { useResource } from './lib/useResource'
@@ -11,6 +14,7 @@ import { Manager } from './features/manager/Manager'
 import { JudgeGuide } from './features/auth/JudgeGuide'
 import { DemoEnrollment } from './features/auth/DemoEnrollment'
 import { EmailConfirmation } from './features/auth/EmailConfirmation'
+import { PasswordRecovery } from './features/auth/PasswordRecovery'
 import { authErrorMessage, authFailureCode, clearPendingEmail, readPendingEmail, savePendingEmail, uncertainAuthFailure } from './features/auth/emailCode'
 import type { PendingEmailConfirmation } from './features/auth/emailCode'
 import type { Membership, School } from './shared/contracts'
@@ -19,10 +23,23 @@ function Brand({ large = false }: { large?: boolean }) {
   return <div className={`brand ${large ? 'brand-large' : ''}`}><span className="brand-mark"><Icon type="loop" /></span><span>SupplyLoop<span className="brand-dot">.</span></span></div>
 }
 
-function SignIn({ onSignIn, onRegister, onModeChange, onRecover, onConfirmationEmailChange, onCancelConfirmation, confirmation, pending, error, notice }: {
+function recoveryErrorMessage(failure: unknown, phase: 'send' | 'verify' | 'update') {
+  const code = authFailureCode(failure)
+  if (phase === 'update' && code === 'same_password') return 'Choose a new password that is different from your previous password.'
+  if (phase === 'update' && ['reauthentication_needed', 'reauthentication_not_valid', 'session_not_found', 'refresh_token_not_found'].includes(code ?? '')) return 'Return to sign in and request a fresh password reset code before trying again.'
+  if (uncertainAuthFailure(failure)) {
+    if (phase === 'update') return 'We could not confirm the password change. It may have succeeded. Return to sign in and try the new password, or request a fresh reset code. We will not retry the change automatically.'
+    if (phase === 'verify') return 'We could not confirm the reset-code response. If the new-password form does not open, request a fresh reset code before trying again.'
+    return 'We could not confirm the reset-code request. Check your inbox before requesting another code after the countdown.'
+  }
+  return authErrorMessage(failure, phase === 'update' ? 'signup' : phase)
+}
+
+function SignIn({ onSignIn, onRegister, onModeChange, onRecover, onForgotPassword, onConfirmationEmailChange, onCancelConfirmation, confirmation, pending, error, notice }: {
   onSignIn: (email: string, password: string) => Promise<void>; onRegister: (email: string, password: string) => Promise<void>
   onModeChange: () => void; pending: boolean; error: string | null; notice: string | null
   confirmation: PendingEmailConfirmation | null; onRecover: (email: string) => void
+  onForgotPassword: (email: string) => void
   onConfirmationEmailChange: (email: string) => void; onCancelConfirmation: () => void
 }) {
   const [registering, setRegistering] = useState(false)
@@ -55,6 +72,7 @@ function SignIn({ onSignIn, onRegister, onModeChange, onRecover, onConfirmationE
         <button type="submit" className="button full signin-button" disabled={pending}>{pending ? registering ? 'Creating your account…' : 'Signing in…' : registering ? 'Create demo account' : 'Sign in'}<Icon type="arrow" /></button>
       </form>}
       {!configurationError && <button type="button" className="text-button confirmation-recovery" disabled={pending} onClick={() => { setPassword(''); onRecover(email.trim()) }}>Finish email confirmation</button>}
+      {!configurationError && !registering && <button type="button" className="text-button confirmation-recovery" disabled={pending} onClick={() => { setPassword(''); onForgotPassword(email.trim()) }}>Forgot password</button>}
       <div className="signin-help"><span aria-hidden="true">↳</span><p>{registering ? 'Registered before, or unsure whether your request completed? Sign in with the same details or finish email confirmation. Keep the personal email code separate from the school join code.' : 'School access and roles come from saved memberships. New school enrollment requires an email code and the private School A join code. Existing student and manager logins remain available.'}</p></div>
       </>}
       <JudgeGuide />
@@ -98,6 +116,7 @@ function SignedIn({ session, onSignOut }: { session: Session; onSignOut: () => v
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
+  const [passwordRecoverySession, setPasswordRecoverySession] = useState(false)
   const [restoring, setRestoring] = useState(!!supabase)
   const [signingIn, setSigningIn] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
@@ -105,6 +124,7 @@ export default function App() {
   const [authNotice, setAuthNotice] = useState<string | null>(null)
   const [signoutNotice, setSignoutNotice] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<PendingEmailConfirmation | null>(readPendingEmail)
+  const [passwordReset, setPasswordReset] = useState<PendingPasswordReset | null>(readPendingPasswordReset)
   const [authTransition, setAuthTransition] = useState(false)
   const [authReconciling, setAuthReconciling] = useState(false)
   const [authRecovery, setAuthRecovery] = useState(false)
@@ -119,6 +139,7 @@ export default function App() {
     function acceptSession(nextSession: Session | null, signedOut = false) {
       const nextUserId = nextSession?.user.id ?? null
       if (nextSession || signedOut) { clearPendingEmail(); setConfirmation(null) }
+      if (signedOut || (nextSession && !isPasswordRecoveryKind(authActionKind()))) { clearPendingPasswordReset(); setPasswordReset(null) }
       if (nextSession) setSignoutNotice(null)
       if (signedOut || currentUserId.current !== nextUserId) {
         currentUserId.current = nextUserId
@@ -128,6 +149,9 @@ export default function App() {
         setError(null); setAuthNotice(null)
       }
       setSession(nextSession)
+      // Purpose belongs to the accepted session, not an in-flight intent from
+      // another tab. Keep recovery screens until that next session reconciles.
+      setPasswordRecoverySession(!!nextSession && isPasswordRecoveryKind(authActionKind()))
       setRestoring(false)
       setAuthReconciling(false)
     }
@@ -217,10 +241,59 @@ export default function App() {
     }
   }
 
+  async function recoverPassword(phase: 'send' | 'verify' | 'update', email: string, value = '') {
+    if (!supabase || authLock.current) return
+    const actor = session?.user.email ? { userId: session.user.id, email: session.user.email } : null
+    const context = authContext()
+    if (phase === 'update' && (!actor || !isPasswordRecoveryKind(authActionKind()))) { setError('Request and verify a fresh password reset code before choosing a new password.'); return }
+    authLock.current = true
+    const currentAttempt = ++attempt.current
+    setSigningIn(true); setError(null); setAuthNotice(null); setSignoutNotice(null)
+    if (phase === 'send') {
+      // A lost response can still mean the email was sent. Never resend in an effect.
+      const next = { email, sentAt: Date.now() }
+      savePendingPasswordReset(next); setPasswordReset(next)
+    }
+    try {
+      if (phase === 'send') await requestPasswordRecovery(email)
+      else if (phase === 'verify') await verifyPasswordRecovery(email, value)
+      else if (actor) {
+        const result = await updateRecoveredPassword(actor, context, value)
+        if (result.context === authContext()) {
+          clearPendingPasswordReset(); setPasswordReset(null)
+          setSignoutNotice(result.localOnly
+            ? 'Your password was updated and this browser was signed out. Server sign-out could not be confirmed. Sign in with your new password.'
+            : 'Your password was updated. Sign in with your new password.')
+        }
+      }
+      if (currentAttempt !== attempt.current) return
+      if (phase === 'send') setAuthNotice('If this address belongs to an account that can reset its password, check your inbox and spam folder for the latest SupplyLoop password reset code.')
+    } catch (failure) {
+      if (currentAttempt === attempt.current && authFailureCode(failure) !== 'AUTH_SUPERSEDED') setError(recoveryErrorMessage(failure, phase))
+    } finally {
+      if (currentAttempt === attempt.current) { authLock.current = false; setSigningIn(false) }
+    }
+  }
+
+  function startPasswordRecovery(email: string) {
+    clearPendingEmail(); setConfirmation(null)
+    const saved = readPendingPasswordReset()
+    const address = email || saved?.email || ''
+    const next = { email: address, sentAt: saved?.email.toLowerCase() === address.toLowerCase() ? saved.sentAt : 0 }
+    savePendingPasswordReset(next); setPasswordReset(next)
+    setError(null); setAuthNotice(null); setSignoutNotice(null)
+  }
+
+  async function cancelPasswordRecovery() {
+    if (session) await signOut()
+    else { clearPendingPasswordReset(); setPasswordReset(null); setError(null); setAuthNotice(null) }
+  }
+
   async function signOut() {
     if (!supabase || signingOut) return
     const actor = currentUserId.current
     clearPendingEmail(); setConfirmation(null)
+    clearPendingPasswordReset(); setPasswordReset(null)
     attempt.current++
     setSigningOut(true); setSigningIn(false); setError(null); setAuthNotice(null); setSignoutNotice(null)
     try {
@@ -231,12 +304,14 @@ export default function App() {
   }
 
   const hideWorkspace = authTransition || authReconciling || authRecovery
+  const recoveredSession = session && passwordRecoverySession ? session : null
+  const showPasswordRecovery = !!recoveredSession || (!session && !!passwordReset)
   return <div className="app-shell">
     <a className="skip-link" href={hideWorkspace && !signingOut ? '#auth-transition' : '#main-content'}>Skip to main content</a>
     <div className="demo-banner"><span><i aria-hidden="true" />Fictional demo data</span><span>A shared shelf for your school.</span></div>
     {hideWorkspace && !signingOut && <main id="auth-transition" tabIndex={-1} className="workspace-content">{authRecovery ? <div className="notice error" role="alert"><div><strong>An account change was interrupted.</strong><p>Sign out before continuing so an earlier account is not reopened.</p><ErrorNotice error={error} /><button className="button secondary" onClick={() => void signOut()}>Sign out and retry</button></div></div> : <Loading label="Updating your signed-in session…" />}</main>}
     <div className="auth-view" hidden={hideWorkspace && !signingOut}>
-      {restoring || signingOut ? <><header className="topbar"><Brand /></header><main id="main-content" tabIndex={-1} className="workspace-content"><Loading label={signingOut ? 'Signing out and clearing your workspace…' : 'Restoring your session…'} /></main></> : session ? <><SignedIn key={session.user.id} session={session} onSignOut={() => void signOut()} />{error && <div className="global-error"><ErrorNotice error={error} /></div>}</> : <><header className="topbar signin-topbar"><Brand /><span className="topbar-note">Less waste. More possibility.</span></header><SignIn onSignIn={signIn} onRegister={register} onModeChange={() => { setError(null); setAuthNotice(null) }} confirmation={confirmation} onRecover={email => { const next = { email, sentAt: 0 }; clearPendingEmail(); setConfirmation(next); setError(null); setAuthNotice(null) }} onConfirmationEmailChange={email => { setConfirmation({ email, sentAt: 0 }); setError(null); setAuthNotice(null) }} onCancelConfirmation={() => { clearPendingEmail(); setConfirmation(null); setError(null); setAuthNotice(null) }} pending={signingIn} error={error} notice={authNotice ?? signoutNotice} /></>}
+      {restoring || signingOut ? <><header className="topbar"><Brand /></header><main id="main-content" tabIndex={-1} className="workspace-content"><Loading label={signingOut ? 'Signing out and clearing your workspace…' : 'Restoring your session…'} /></main></> : showPasswordRecovery ? <><header className="topbar signin-topbar"><Brand /><span className="topbar-note">Recover your account</span></header><main id="main-content" tabIndex={-1} className="workspace-content enrollment-layout"><div className="signin-card"><PasswordRecovery key={recoveredSession?.user.id ?? 'guest-reset'} email={recoveredSession?.user.email ?? passwordReset?.email ?? ''} verified={!!recoveredSession} sentAt={passwordReset?.sentAt ?? 0} pending={signingIn} error={error} notice={authNotice} onEmailChange={email => { const next = { email, sentAt: 0 }; savePendingPasswordReset(next); setPasswordReset(next); setError(null); setAuthNotice(null) }} onRequest={email => recoverPassword('send', email)} onVerify={(email, code) => recoverPassword('verify', email, code)} onUpdate={password => recoverPassword('update', recoveredSession?.user.email ?? '', password)} onCancel={cancelPasswordRecovery} /></div></main></> : session ? (!hideWorkspace ? <><SignedIn key={session.user.id} session={session} onSignOut={() => void signOut()} />{error && <div className="global-error"><ErrorNotice error={error} /></div>}</> : null) : <><header className="topbar signin-topbar"><Brand /><span className="topbar-note">Less waste. More possibility.</span></header><SignIn onSignIn={signIn} onRegister={register} onForgotPassword={startPasswordRecovery} onModeChange={() => { setError(null); setAuthNotice(null) }} confirmation={confirmation} onRecover={email => { const next = { email, sentAt: 0 }; clearPendingEmail(); setConfirmation(next); setError(null); setAuthNotice(null) }} onConfirmationEmailChange={email => { setConfirmation({ email, sentAt: 0 }); setError(null); setAuthNotice(null) }} onCancelConfirmation={() => { clearPendingEmail(); setConfirmation(null); setError(null); setAuthNotice(null) }} pending={signingIn} error={error} notice={authNotice ?? signoutNotice} /></>}
     </div>
     <footer className="app-footer"><span>SupplyLoop<span className="brand-dot">.</span></span><p>Shared with care. Passed on with purpose.</p><span>School community prototype</span></footer>
   </div>

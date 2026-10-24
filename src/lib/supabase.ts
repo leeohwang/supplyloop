@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
-import { createAuthLifecycle, AuthCoordinationUnavailable, AuthRecoveryRequired, signOutWithLocalFallback } from './authLifecycle'
+import { createAuthLifecycle, AuthCoordinationUnavailable, AuthRecoveryRequired, isPasswordRecoveryKind, signOutWithLocalFallback } from './authLifecycle'
 import type { AuthActionKind } from './authLifecycle'
 import { AppError } from './errors'
+import { finishPasswordRecovery } from './passwordRecovery'
+import type { RecoveryActor } from './passwordRecovery'
 
 const projectUrl = import.meta.env.VITE_SUPABASE_URL?.trim() ?? ''
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() ?? ''
@@ -50,6 +52,32 @@ export const subscribeAuthTransition = lifecycle.subscribe
 export const authRecoveryRequired = lifecycle.needsRecovery
 export const authContext = lifecycle.context
 export const authActionKind = lifecycle.currentKind
+
+export async function requestPasswordRecovery(email: string) {
+  return authSessionAction('recover-request', null, async db => {
+    const { error } = await db.auth.resetPasswordForEmail(email)
+    if (error) throw error
+  })
+}
+
+export async function verifyPasswordRecovery(email: string, token: string) {
+  return authSessionAction('recover', null, async db => {
+    const { data, error } = await db.auth.verifyOtp({ email, token, type: 'recovery' })
+    if (error) throw error
+    if (!data.session || !data.user || data.user.email?.toLowerCase() !== email.toLowerCase()) throw new AppError('AUTH_REQUIRED')
+  })
+}
+
+export async function updateRecoveredPassword(actor: RecoveryActor, context: string | null | undefined, password: string) {
+  if (!context || context !== lifecycle.context() || !isPasswordRecoveryKind(lifecycle.currentKind())) throw new AppError('AUTH_REQUIRED')
+  return authSessionAction('reset', actor, async db => {
+    const result = await finishPasswordRecovery(db.auth, actor, password, {
+      assertCurrent: lifecycle.assertCurrent,
+      removeSession: () => { if (!sharedStorage) throw new AuthRecoveryRequired(); sharedStorage.removeItem(storageKey) },
+    })
+    return { ...result, context: lifecycle.context() }
+  })
+}
 
 export async function signOutAccount() {
   return authSessionAction('signout', null, db => signOutWithLocalFallback({
