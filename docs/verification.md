@@ -6,7 +6,7 @@ Verified against dedicated fictional Supabase project `myyfdtqpeqbhnxwlpkeg`, Po
 
 ## Website domain cutover — October 23, 2026
 
-Canonical address: **https://joinsupplyloop.app/**. The host is Cloudflare Pages **Direct Upload**, project `joinsupplyloop`, with Vite base `/`. Production deployment: `cfde0748-5eb8-4b35-bda8-ceed768763e2`. The source repository remains `leeohwang/supplyloop`. Deployment/configuration, focused new-origin browser acceptance, and independent old-site retirement checks passed. Final source publication/CI is recorded below when complete.
+Canonical address: **https://joinsupplyloop.app/**. The host is Cloudflare Pages **Direct Upload**, project `joinsupplyloop`, with Vite base `/`. Production deployment: `cfde0748-5eb8-4b35-bda8-ceed768763e2`. The source repository remains `leeohwang/supplyloop`. Deployment/configuration, focused new-origin browser acceptance, independent old-site retirement, and source publication/CI checks passed.
 
 | Cutover check | Result and scope |
 | --- | --- |
@@ -22,7 +22,8 @@ Canonical address: **https://joinsupplyloop.app/**. The host is Cloudflare Pages
 | Separate root website preservation | Before and after old-site removal, LUMEN at `https://leeohwang.github.io/` returned HTTPS 200 with identical 2,453 bytes and SHA-256 `4ff96cf0e4926e8936bff44b402ed3d53e71df6b6b10153e8b3ab3f3e2f74787` |
 | Fresh-origin browser acceptance | Passed: ordinary School A student/manager and School B student login, role screens, refresh, item details, reservation/cancellation, identifier-based school isolation, phone layout, cross-tab sign-out, and guest reload |
 | Old GitHub Pages project retirement | Independent QA at 01:02:36 UTC October 24 confirmed exact old app URL and both old assets return 404 directly, with zero redirects; Pages API also returns 404, workflow 388769787 is `disabled_manually`, and apex/root checks still pass |
-| Final source publication and CI | **Pending:** final commit/push, passing build-only CI run, and recorded deployment/source correspondence |
+| Source publication and CI | Migration commit [`c0a729c8e20ef523f29afc1f676a0ceb6d83e306`](https://github.com/leeohwang/supplyloop/commit/c0a729c8e20ef523f29afc1f676a0ceb6d83e306) is published on `main`; [Verify SupplyLoop run 40048376495](https://github.com/leeohwang/supplyloop/actions/runs/40048376495) passed type checking, lint, unit tests, and build in a 19-second build job, with no deployment step |
+| Source/build and private-value correspondence | Before publication, all 32 indexed build inputs matched the tested build snapshot; the 17-value scan of 70 indexed blobs and all three assets passed, with no credentials/private email exposure, ignored indexed files, unstaged changes, or stale asset subpaths |
 
 The website move itself changed no credentials, accounts, memberships, application data, SMTP, or Resend sending-domain settings. The deliberate browser reservation/cancellation below added normal transaction/audit records and returned the object to stock; no migration or reset rewrote business history. Existing reviewers sign in again because local browser sessions belong to the old origin; their backend identities and history remain in the same Supabase project. The client retains `detectSessionInUrl: false` and entered-code verification. Updated template links and exact Auth settings do not themselves prove new mailbox delivery.
 
@@ -35,6 +36,8 @@ The uploaded ZIP's SHA-256 was `dcf946dd187b914db17c921c92274933f4f34809593354de
 | `index.html` | `d5a0ab2fb6f96f6565512fb5a97894f3e9c166c6193f0e380031ef8bb20ad0c1` |
 | `assets/index-BhuDatqB.css` | `88284e5112fcb3a8a47f0daf356193c0fbd614f2692e59f5f8b89ef221ec4ae8` |
 | `assets/index-C_72GE6N.js` | `2ec6f1af1b7a5a01c8a1146cd94cca1dcac9f9a758e408e861515dc8f0d85987` |
+
+The follow-up evidence edit changes only this record and implementation notes; it does not alter the 32 build inputs, hosted templates, Auth configuration, or deployed artifact. GitHub workflow `394728700` (`ci.yml`) is active; the former Pages workflow `388769787` remains disabled. Source validation does not republish the retired site.
 
 ### Focused new-origin browser walkthrough
 
@@ -111,7 +114,7 @@ The October 18 GitHub Pages deployment and public browser/registration checks co
 
 ## October 23 email-confirmation release — Gmail verified, Outlook unresolved
 
-Address scope: this release and public walkthrough were verified at the former GitHub Pages `/supplyloop/` address. The website-domain checkpoint above records the later apex deployment and its remaining acceptance requirements.
+Address scope: this release and public walkthrough were verified at the former GitHub Pages `/supplyloop/` address. The website-domain checkpoint above records the later apex deployment and scoped acceptance evidence.
 
 The email upgrade was deployed at that public `/supplyloop/` address. Resend verified the owned sending domain, and the required Cloudflare records are installed. Custom SMTP was saved and its persistence checked: sender **SupplyLoop <noreply@auth.joinsupplyloop.app>**, Resend port **465**, with TLS enforced. Both the signup-confirmation and magic-link code templates were installed. Email/password signup and **Confirm Email** are enabled and their saved state was checked after reloading. Codes use eight digits, a one-hour lifetime, and a 60-second resend interval.
 
