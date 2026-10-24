@@ -1,8 +1,52 @@
 # SupplyLoop verification
 
-The October 18 sections below are historical evidence for the former autoconfirmed registration flow. The current October 23 deployment, actual Gmail confirmation/enrollment, public walkthrough, and remaining delivery limits are recorded separately at the end.
+The website-domain cutover checkpoint below is current. October 18 sections are historical evidence for the former autoconfirmed registration flow. The October 23 email-confirmation and public-walkthrough section retains evidence collected at the previous GitHub Pages address; it does not establish fresh-origin acceptance at the new apex.
 
 Verified against dedicated fictional Supabase project `myyfdtqpeqbhnxwlpkeg`, PostgreSQL 17.11. School identities, inventory, labels, and pickup records are fictional; controlled registration uses real email accounts.
+
+## Website domain cutover — October 23, 2026
+
+Canonical address: **https://joinsupplyloop.app/**. The host is Cloudflare Pages **Direct Upload**, project `joinsupplyloop`, with Vite base `/`. Production deployment: `cfde0748-5eb8-4b35-bda8-ceed768763e2`. The source repository remains `leeohwang/supplyloop`. Deployment/configuration, focused new-origin browser acceptance, and independent old-site retirement checks passed. Final source publication/CI is recorded below when complete.
+
+| Cutover check | Result and scope |
+| --- | --- |
+| Root-path candidate validation | Type checking, lint, all 42 unit/SDK tests, and production build passed |
+| Compiled private-value scan | Passed for the new three-file `dist`; no private configuration values found |
+| Cloudflare upload | Project created by manual Direct Upload of the reviewed root-`dist` ZIP, build reference `pznE3T`; no new API token or GitHub app authorization |
+| Apex HTTPS and artifact comparison | Passed at 00:50:55 UTC on October 24 (October 23 EDT): valid HTTPS and all three public files matched the reviewed build manifest exactly |
+| Application behavior correspondence | Published JavaScript/CSS hashes match the previously tested app exactly; no application behavior changed in this domain move |
+| Cloudflare custom-domain state | UI showed **Active** and **SSL enabled** |
+| Hosted Auth URLs | Site URL and sole exact redirect allowlist entry saved and reloaded as `https://joinsupplyloop.app/` |
+| Hosted confirmation templates | Both saved and reopened; each preview showed one new-apex link, with original subjects, `{{ .Token }}`, eight-digit code, and one-hour wording retained |
+| Mail DNS preservation | Independent QA verified 12/12 identical answers across two authoritative nameservers plus `1.1.1.1`, including the entire DKIM key, both sending CNAMEs, and scoped DMARC TXT |
+| Separate root website preservation | Before and after old-site removal, LUMEN at `https://leeohwang.github.io/` returned HTTPS 200 with identical 2,453 bytes and SHA-256 `4ff96cf0e4926e8936bff44b402ed3d53e71df6b6b10153e8b3ab3f3e2f74787` |
+| Fresh-origin browser acceptance | Passed: ordinary School A student/manager and School B student login, role screens, refresh, item details, reservation/cancellation, identifier-based school isolation, phone layout, cross-tab sign-out, and guest reload |
+| Old GitHub Pages project retirement | Independent QA at 01:02:36 UTC October 24 confirmed exact old app URL and both old assets return 404 directly, with zero redirects; Pages API also returns 404, workflow 388769787 is `disabled_manually`, and apex/root checks still pass |
+| Final source publication and CI | **Pending:** final commit/push, passing build-only CI run, and recorded deployment/source correspondence |
+
+The website move itself changed no credentials, accounts, memberships, application data, SMTP, or Resend sending-domain settings. The deliberate browser reservation/cancellation below added normal transaction/audit records and returned the object to stock; no migration or reset rewrote business history. Existing reviewers sign in again because local browser sessions belong to the old origin; their backend identities and history remain in the same Supabase project. The client retains `detectSessionInUrl: false` and entered-code verification. Updated template links and exact Auth settings do not themselves prove new mailbox delivery.
+
+Future publication is manual: build and review a fresh ZIP containing only the root-level `dist` contents, then upload it to this Pages project's production environment. `.github/workflows/ci.yml`, **Verify SupplyLoop**, validates source and build only; it does not automatically deploy to Cloudflare. See [owner publishing instructions](judge-access.md#repository-owner-verification-and-manual-publication). Do not reintroduce the old GitHub deployment job, because a later deployment can republish an unpublished site. The public repository homepage also points to the apex.
+
+The uploaded ZIP's SHA-256 was `dcf946dd187b914db17c921c92274933f4f34809593354de3af4bfe71b50d082`. Public artifact correspondence:
+
+| File | SHA-256 |
+| --- | --- |
+| `index.html` | `d5a0ab2fb6f96f6565512fb5a97894f3e9c166c6193f0e380031ef8bb20ad0c1` |
+| `assets/index-BhuDatqB.css` | `88284e5112fcb3a8a47f0daf356193c0fbd614f2692e59f5f8b89ef221ec4ae8` |
+| `assets/index-C_72GE6N.js` | `2ec6f1af1b7a5a01c8a1146cd94cca1dcac9f9a758e408e861515dc8f0d85987` |
+
+### Focused new-origin browser walkthrough
+
+- School A student password sign-in opened Find and item details. The student reserved green garment `SL-220BADC18E78464AAA162DF11EF700D2` at **8:57 p.m. EDT on October 23**. Reload retained the active reservation in My pickups; cancellation at **8:58 p.m.** returned the object to available stock.
+- School A manager password sign-in opened Manager desk directly with no student navigation or personal reservation controls. Live inventory and History showed two server events for the reservation/cancellation with the correct student actor. Manager reload retained the session.
+- A fresh School B student login showed three School B item identifiers and excluded the School A test identifier. One School B garment had a similar green title; identifier comparison, rather than title exclusion, established isolation.
+- At **390 × 844**, the student's document scroll width was **375 pixels**, with no horizontal overflow. The manager's 390-pixel phone viewport also had 375-pixel scroll width, only Manager desk navigation, and displayed History.
+- Sign-out synchronized across the two tabs and cleared private views; fresh reload remained guest. Both tab consoles recorded **zero warnings and errors**. All test tabs ended signed out.
+
+A full clothing/textbook handoff and new email/code-entry journey were not repeated at this origin. The controlled Gmail signup/fresh-code, completed full-category walkthrough, and twenty ordinary hosted API scenarios below retain their original scope and remain applicable to the unchanged backend and byte-identical app JavaScript/CSS. Focused new-origin checks cover the hosting/session transition; repeating the entire unchanged matrix is not a remaining website-removal gate. Outlook inbox visibility remains an explicit separate delivery limitation, not a blocker to completing the website migration. No new mail has tested the `p=none` DMARC baseline; receiver-header pass evidence and any enforcement policy remain pending. Deliberate browser network faults and behavior on every physical mobile device also remain unverified.
+
+Official guidance checked **October 23, 2026**, for the unchanged installed React 19.3.1, TypeScript 6.0.2, Vite 8.3.4, Supabase JS 2.118.0, Node.js 22.20.0, and hosted PostgreSQL 17.11 / GoTrue 2.197.0: [Cloudflare Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/), [custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/), [Vite root-path deployment](https://vite.dev/guide/static-deploy.html), [Supabase Auth redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls), [email templates](https://supabase.com/docs/guides/auth/auth-email-templates), [origin-specific browser storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage), and [GitHub Pages unpublishing](https://docs.github.com/en/pages/getting-started-with-github-pages/unpublishing-a-github-pages-site). Full cutover documentation and compatibility notes are in [implementation notes](implementation-notes.md#website-domain-cutover--october-23-2026).
 
 ## October 18 automated checks — historical
 
@@ -67,9 +111,11 @@ The October 18 GitHub Pages deployment and public browser/registration checks co
 
 ## October 23 email-confirmation release — Gmail verified, Outlook unresolved
 
-The email upgrade is deployed at the public `/supplyloop/` address. Resend verified the owned sending domain, and the required Cloudflare records are installed. Custom SMTP was saved and its persistence checked: sender **SupplyLoop <noreply@auth.joinsupplyloop.app>**, Resend port **465**, with TLS enforced. Both the signup-confirmation and magic-link code templates are installed. Email/password signup and **Confirm Email** are enabled and their saved state was checked after reloading. Codes use eight digits, a one-hour lifetime, and a 60-second resend interval.
+Address scope: this release and public walkthrough were verified at the former GitHub Pages `/supplyloop/` address. The website-domain checkpoint above records the later apex deployment and its remaining acceptance requirements.
 
-Supabase's new-password minimum is twelve; all six existing fixed passwords meet that length and were not changed. The Site URL and sole allowed redirect are the exact published `/supplyloop/` address. Fixed judge accounts retain the ordinary password sign-in route with no email-confirmation wait. New School A enrollment requires recent email-OTP proof and the private community code. Earlier autoconfirmed accounts are not treated as proof of mailbox ownership.
+The email upgrade was deployed at that public `/supplyloop/` address. Resend verified the owned sending domain, and the required Cloudflare records are installed. Custom SMTP was saved and its persistence checked: sender **SupplyLoop <noreply@auth.joinsupplyloop.app>**, Resend port **465**, with TLS enforced. Both the signup-confirmation and magic-link code templates were installed. Email/password signup and **Confirm Email** are enabled and their saved state was checked after reloading. Codes use eight digits, a one-hour lifetime, and a 60-second resend interval.
+
+Supabase's new-password minimum is twelve; all six existing fixed passwords meet that length and were not changed. At this release checkpoint, the Site URL and sole allowed redirect were the exact published `/supplyloop/` address; the later domain cutover updated both as recorded above. Fixed judge accounts retain the ordinary password sign-in route with no email-confirmation wait. New School A enrollment requires recent email-OTP proof and the private community code. Earlier autoconfirmed accounts are not treated as proof of mailbox ownership.
 
 The exact fourth migration, `20261023000100_email_confirmed_enrollment.sql`, was applied with SHA-256 `6acce7917a7cdd8703cbdc72c042003537a2d47fe4c6eb82e9d9fcccc6021174`. All nine pre/post table row-count and digest comparisons matched. Catalog checks passed for three reviewed functions, six RLS-enabled public tables, and eight public RPCs. This confirms the reviewed schema/configuration and preserved existing data; it does not prove delivery to a mailbox.
 
