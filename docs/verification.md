@@ -22,7 +22,7 @@ The recovered actor is checked against both the stored session and a live Auth u
 | Actual Outlook reset-email delivery | All-folders sender/subject search showed **Your SupplyLoop password reset code**, **Inbox**, **10:49 p.m. EDT**; nothing was selected/opened and no quarantine release was performed |
 | Wrong recovery code | Rejected with the invalid/expired/used-code error; no password form or school workspace opened |
 | Fixed-account regression after deployment | All six ordinary password logins/live-user checks, original membership/role/active/label checks, single-school reads, and temporary-session local sign-outs passed; no password update or business RPC was used |
-| Real recovery and new-password acceptance | Awaiting the owner entering the received code and new password privately; no fixed demo password has been reset |
+| Real recovery and new-password acceptance | The owner confirmed completing the real reset-code/new-password flow and ordinary sign-in privately. The lead independently observed the School A student Find/My pickups workspace in two apex tabs and after refreshing the reopened tab at approximately **11:15 p.m. EDT**. No manager screen appeared; no fixed demo password was reset |
 
 The public JavaScript is `assets/index-Dkx_xM8q.js`, **523,132 bytes**, SHA-256 `cf515eb3d47306e59e7401d4bfa43731a608378e9afca768dc576ff161c947b2`. HTML SHA-256 is `3e01df598bce28705f75a4330a774e3043e95bfa819e6d5e1c2ac1eca9b74b8d`; CSS retains `88284e5112fcb3a8a47f0daf356193c0fbd614f2692e59f5f8b89ef221ec4ae8`. Vite emits its existing greater-than-500-kB chunk warning; the build succeeds. Original dependency manifests and pinned versions are unchanged. Original-folder compiler attempts stalled and were stopped; reported successful checks use the isolated snapshot with all 34 source/build hashes verified against the working tree.
 
@@ -45,7 +45,7 @@ Before enrollment, the verified but still-unenrolled actor explicitly requested 
 | Literal enrollment retry | A second tab retained its mounted join form; submitting a different label and wrong nonblank code after first enrollment returned the existing School A membership with the original label |
 | Private record presentation | New student's My pickups showed zero active/collected records; item details exposed no manager storage, inspection, or audit fields; school selector offered only School A |
 | Persistence and cleanup | Both tabs retained the original student membership after reload; sign-out cleared both private views and fresh reload stayed guest |
-| Outlook account password re-login | Not verified: the owner did not have that password handy; the prepared form later showed the generic unrecognized-email/password error. No password reset or credential change was performed |
+| Outlook account password re-login | Unverified at this enrollment checkpoint because the owner did not have the password handy; no password reset had yet been performed. Superseded by the successful personal reset/sign-in evidence in the password-recovery section above |
 | Fixed-account regression | At 10:09 p.m. EDT, all six ordinary password logins, live actor checks, original school/role/active/label checks, and single-school reads passed; all six temporary sessions signed out locally |
 | Current links and artifacts | All 70 tracked public files audited: both runtime email links use the apex; no old-subpage link in app/operator runtime code or published assets; old URLs are historical evidence or intentional 404 checks |
 
