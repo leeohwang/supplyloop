@@ -79,6 +79,38 @@ The generator uses only Node built-ins, makes no network requests, and writes Ty
 
 The current checked-in generated file reproduces exactly from this hosted catalog snapshot. All six wrapper row field sets match the generated rows. Catalog references checked October 18, 2026: PostgreSQL 17 [columns](https://www.postgresql.org/docs/17/catalog-pg-attribute.html), [functions](https://www.postgresql.org/docs/17/catalog-pg-proc.html), [constraints](https://www.postgresql.org/docs/17/catalog-pg-constraint.html), [types](https://www.postgresql.org/docs/17/catalog-pg-type.html), and [indexes](https://www.postgresql.org/docs/17/catalog-pg-index.html).
 
+## October 24 authorized account and inventory reset
+
+The user explicitly authorized deleting self-registered accounts and resetting all fictional inventory and pickup history to the original seed. Preserve the six fixed Auth identities, passwords and memberships, both schools, and the existing private school code. This one-time operation supersedes earlier instructions to retain the added accounts/history for this reset only. It does not disable ordinary email/password signup, email confirmation, password recovery, or private-code enrollment.
+
+The reviewed operator tool is restricted to project `myyfdtqpeqbhnxwlpkeg`. From the repository root:
+
+```sh
+node --env-file=.env.operator.local scripts/operator/reset-registrations.mjs --plan
+```
+
+Planning reads the backend and creates exclusive, owner-only `.reset-registrations-manifest.local` and `.reset-registrations-cleanup.local` files. Keep both outside source and build output. Verify the target count and complete SQL, then apply the entire transaction through trusted SQL access to the approved project. The transaction checks fixed identities/metadata, exact account and membership sets, the private enrollment ledger, and stock/history identity sets before deleting dependent rows. It preserves the fixed Auth rows and join-code configuration. Concurrent changes cause refusal or rollback. No migration, public endpoint, or broader grant is installed.
+
+After the cleanup commits, use the same frozen artifacts and script:
+
+```sh
+node --env-file=.env.operator.local scripts/operator/reset-registrations.mjs --delete-accounts
+npm run demo:provision
+```
+
+The deletion step hard-deletes only planned extra UUIDs through Supabase Admin Auth, checks protected records and empty stock/history before each deletion, and can resume the same manifest after interruption. Do not provision inventory before this deletion step succeeds. Provisioning retains the existing credential file and recreates the original eleven objects through manager RPCs. Verify six remaining Auth accounts/memberships, eleven objects, no reservations or completed transfers, and only fresh receipt/publication/retirement events. Issued JWTs may survive until expiry, but deleted memberships immediately remove school access; refresh sessions are revoked by account deletion.
+
+Safety checks use no application credentials or hosted writes:
+
+```sh
+npm run test:reset-operator
+npm run test:reset-security
+```
+
+The SQL runner requires local PostgreSQL 17 binaries and creates/removes its own isolated temporary cluster. It tests refusal, atomic rollback, fixed-password/code preservation, success, and replay refusal. The operator mocks test frozen deletion targets, safe retries, concurrent registration refusal, and manifest tampering. Never reuse a completed plan to delete future registrations, weaken the existing `restore-demo.sql` guard, or invoke a reset while judges are working.
+
+Official sources checked October 24, 2026 for Supabase JS 2.118.0 and PostgreSQL 17.11: [Auth deletion](https://supabase.com/docs/reference/javascript/auth-admin-deleteuser), [account listing](https://supabase.com/docs/reference/javascript/auth-admin-listusers), [user management and sessions](https://supabase.com/docs/guides/auth/managing-user-data), [transactions](https://www.postgresql.org/docs/17/tutorial-transactions.html), [locking](https://www.postgresql.org/docs/17/explicit-locking.html), and [Node 22 filesystem safety](https://nodejs.org/download/release/v22.20.0/docs/api/fs.html).
+
 ## Fictional data restoration and security
 
 `restore-demo.sql` is an explicit operator-only restoration for the original exact-six-account fixture. Registration acceptance has added a student, so its existing guard now refuses restoration; do not bypass the guard or delete enrollments to force a reset. Any recovery for the expanded dataset needs a separately reviewed operator plan that preserves registered users' history. For an environment still containing only the original six memberships, review the script through trusted tooling before any restoration and subsequent `npm run demo:provision`. Restoration is transactional, school-scoped, checks operator-managed demo markers, and preserves Auth users/memberships/other schools. Retain the original `.env.test.local`; there is no public reset endpoint or implicit password rotation.

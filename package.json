@@ -16,6 +16,8 @@
     "test:api": "node --env-file=.env.test.local --test --test-concurrency=1 tests/api/acceptance.test.mjs",
     "test:registration": "node --env-file=.env.test.local --env-file=.env.registration.local --env-file=.env.email-test.local --test --test-concurrency=1 tests/api/registration.test.mjs",
     "test:enrollment-security": "node scripts/operator/test-email-enrollment-local.mjs",
+    "test:reset-operator": "node --test tests/operator/reset-registrations.test.mjs",
+    "test:reset-security": "node scripts/operator/test-reset-registrations-local.mjs",
     "demo:provision": "node --env-file=.env.operator.local scripts/operator/provision.mjs"
   },
   "dependencies": {

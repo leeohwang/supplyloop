@@ -1,5 +1,25 @@
 # SupplyLoop verification
 
+## Account onboarding and reset preparation — October 24, 2026
+
+The current interface uses **Create account → personal emailed confirmation code → Join school with a privately shared code**. The renamed `SchoolEnrollment` component and `joinSchool` client adapter retain the existing `join_demo_school` backend RPC, student-only School A enrollment, real email proof, password recovery, and session coordination. The persistent fictional-data notice remains. No Auth setting, email template, schema, grant, code, or dependency version changed.
+
+| Check | Result |
+| --- | --- |
+| Frontend validation | Type checking, lint, all 63 unit/SDK tests, and production build passed using exact-lock materialized dependencies outside the iCloud workspace |
+| Operator safeguard mocks | Six retained tests passed, including frozen UUID targeting, interruption/retry, new-registration refusal, protected-record drift, and artifact tampering |
+| PostgreSQL reset safety | Implementation owner and independent QA passed nine isolated PostgreSQL 17 checks covering changed targets/dependencies, atomic rollback, protected Auth/password/code preservation, success, and replay refusal |
+| Local browser | Create account copy and twelve-character constraint present; email-code confirmation remains separate; phone viewport 390 × 844 had client/scroll width 375/375; no obsolete registration label |
+| Build privacy | All three compiled files passed a scan against 16 private configured values; ZIP contains only root `index.html` and two compiled assets |
+| Public files | Production deployment `000c459a-1c06-471c-a268-9e0dcbfa64d5`; canonical apex and both asset URLs returned HTTPS 200 with correct MIME types and bytes identical to the reviewed build |
+| Hosted browser | New account wording and separate email-code explanation observed on the apex after signing out the prior personal session; no new account or email was created |
+| Reset plan | Hosted PostgreSQL 17.11 preflight found 11 Auth accounts, six fixed accounts, two schools, 11 memberships, 132 items/staff rows, 64 reservations, 340 events, and five enrollment-ledger rows; trusted SQL read/lock permissions verified |
+| Hosted reset | **Prepared, not executed**. The user authorized deleting self-registered accounts and restoring original fictional data; browser rules require final irreversible-deletion confirmation at execution time, which is pending |
+
+Reviewed release ZIP SHA-256: `72f89edbdf44e8c1135b54328c5bbac7386fd9858240170c4dc57e5c682fd0cb`. Public HTML SHA-256: `6b501acac89bfa3025567de4018bc7ae1d90b1d3fa7d42a4a74abcc324a15902`; JavaScript `assets/index-BU-mstk8.js`: `4383f26dd6f1d3fbcf0bea482c351436d10e75e23dd425753461420b8cf999af`; unchanged CSS `assets/index-BhuDatqB.css`: `88284e5112fcb3a8a47f0daf356193c0fbd614f2692e59f5f8b89ef221ec4ae8`.
+
+The frozen owner-only reset artifacts are outside the repository in the materialized operator snapshot. The plan removes five added accounts, preserves the original six Auth identities/passwords/memberships and private code, clears both fictional schools' stock/history, then restores eleven seed objects through manager RPCs. No hosted deletion, new signup, email send, password change, or business RPC has been used for this release's checks so far. Prior real-inbox and authorization acceptance below retain their historical scope. The full mutating acceptance suite should not run after restoration without another authorized reset, because it creates test stock/history.
+
 The password-recovery, Outlook recovery/enrollment, and website-domain checkpoints below record the successive releases. October 18 sections are historical evidence for the former autoconfirmed registration flow. The earlier October 23 email-confirmation/public-walkthrough section retains its previous GitHub Pages scope and is supplemented by the actual apex email/enrollment checks below.
 
 Verified against dedicated fictional Supabase project `myyfdtqpeqbhnxwlpkeg`, PostgreSQL 17.11. School identities, inventory, labels, and pickup records are fictional; controlled registration uses real email accounts.

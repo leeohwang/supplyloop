@@ -46,7 +46,7 @@ async function mutate(request: PromiseLike<{ data: unknown; error: unknown }>, s
 
 export interface AuthorizedSchool { school: School; membership: Membership }
 
-function validDemoMembership(value: unknown, userId: string): value is Membership {
+function validSchoolMembership(value: unknown, userId: string): value is Membership {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const membership = value as Record<string, unknown>
   return membership.school_id === '11111111-1111-1111-1111-111111111111'
@@ -56,7 +56,7 @@ function validDemoMembership(value: unknown, userId: string): value is Membershi
     && typeof membership.created_at === 'string' && Number.isFinite(Date.parse(membership.created_at))
 }
 
-export async function joinDemoSchool(userId: string, accessCode: string, displayLabel: string): Promise<Membership> {
+export async function joinSchool(userId: string, accessCode: string, displayLabel: string): Promise<Membership> {
   try {
     const db = client()
     const { data: auth, error } = await db.auth.getSession()
@@ -67,7 +67,7 @@ export async function joinDemoSchool(userId: string, accessCode: string, display
     const data = await read<unknown>(db.rpc('join_demo_school', {
       p_access_code: accessCode.trim(), p_display_label: displayLabel.trim(),
     }).setHeader('Authorization', `Bearer ${auth.session.access_token}`).single<unknown>())
-    if (!validDemoMembership(data, userId)) throw new AppError('SERVER_ERROR')
+    if (!validSchoolMembership(data, userId)) throw new AppError('SERVER_ERROR')
     return data
   } catch (error) { throw normalizeError(error) }
 }

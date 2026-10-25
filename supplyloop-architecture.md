@@ -2,6 +2,8 @@
 
 Design date: October 18, 2026. Status: proposed architecture, not an implemented or deployed app.
 
+Current identity policy, October 24, 2026: the implemented app supports real email/password account creation, an emailed confirmation code, and a separate private-code enrollment into fictional School A as a student. The interface uses “Create account” and “Join school”; account creation alone grants no school access. Six operator-provisioned student/manager logins remain available. The user authorized removal of previously self-registered accounts and a one-time restoration of fictional inventory and pickup history, preserving those six accounts, the schools, and the existing private school code. This policy supersedes the original fixed-account-only onboarding proposal below; all school data remains fictional.
+
 ## 1. Product contract
 
 SupplyLoop helps a verified school community find, reserve, and collect donated clothing and reusable physical textbooks. A school custodian controls intake and confirms collection. The prototype uses fictional schools, accounts, inventory, and transactions.

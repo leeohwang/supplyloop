@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { ErrorNotice, Field, Notice } from '../../components/ui'
-import { joinDemoSchool } from '../../lib/api'
+import { joinSchool } from '../../lib/api'
 import { AppError, normalizeError } from '../../lib/errors'
 import { EmailConfirmation } from './EmailConfirmation'
 import { readPendingEmail } from './emailCode'
 
-export function DemoEnrollment({ userId, email, onRecheck, refreshing, membershipError, onEmailBusyChange }: {
+export function SchoolEnrollment({ userId, email, onRecheck, refreshing, membershipError, onEmailBusyChange }: {
   userId: string; email: string | undefined; onRecheck: () => void; refreshing: boolean; membershipError: AppError | null
   onEmailBusyChange: (busy: boolean) => void
 }) {
@@ -33,10 +33,10 @@ export function DemoEnrollment({ userId, email, onRecheck, refreshing, membershi
     const currentRequest = ++request.current
     setPending(true); setError(null); setNotice(null)
     try {
-      await joinDemoSchool(userId, code, label)
+      await joinSchool(userId, code, label)
       if (!alive.current || request.current !== currentRequest) return
       setAccessCode('')
-      setNotice('Your demo student membership is saved. Checking your school access…')
+      setNotice('Your student membership is saved. Checking your school access…')
       onRecheck()
     } catch (failure) {
       if (!alive.current || request.current !== currentRequest) return
@@ -53,13 +53,13 @@ export function DemoEnrollment({ userId, email, onRecheck, refreshing, membershi
   return <section className="enrollment-card" aria-labelledby="enrollment-title">
     <span className="eyebrow">One more step</span>
     <h1 id="enrollment-title">Join the fictional school.</h1>
-    <p>Your real demo account is signed in{email ? <> as <strong className="enrollment-email">{email}</strong></> : null}, with no active school workspace yet. Enter the organizer’s private code to join fictional School A as a student.</p>
-    <div className="demo-auth-note"><strong>Demo access only</strong><p>New school enrollment requires a personal email code and the private school join code. School identity is not verified. This code grants student access to shared fictional data; the organizer provides manager access separately.</p></div>
+    <p>Your SupplyLoop account is signed in{email ? <> as <strong className="enrollment-email">{email}</strong></> : null}, with no active school workspace yet. Enter the organizer’s private code to join fictional School A as a student.</p>
+    <div className="demo-auth-note"><strong>School access needs a private code</strong><p>New school enrollment requires a personal email code and the separate private school join code. School identity is not verified. This code grants student access to shared fictional data; the organizer provides manager access separately.</p></div>
     {needsEmailCode && email ? <EmailConfirmation key={email} confirmation={{ email, sentAt: savedEmail?.email === email ? savedEmail.sentAt : 0 }} kind="existing" userId={userId} onBusyChange={onEmailBusyChange} onVerified={() => { onEmailBusyChange(false); setNeedsEmailCode(false); setError(null); setNotice('Email code confirmed for this session. Review your display label and private school join code, then choose Join School A.') }} onBack={() => { setNeedsEmailCode(false); setError(null) }} /> : <form onSubmit={event => { event.preventDefault(); void join() }}>
       <fieldset className="form-fieldset" disabled={pending || refreshing}>
-        <Field label="Fictional display label" help="Use a made-up label. School managers can see it in the pickup queue."><input name="demo-display-label" autoComplete="off" required value={displayLabel} onChange={event => setDisplayLabel(event.target.value)} /></Field>
-        <Field label="Private school join code" help="Get this code privately from the organizer. It is case-sensitive and is not your personal email code."><input name="demo-access-code" type="password" autoComplete="off" autoCapitalize="none" spellCheck={false} required value={accessCode} onChange={event => setAccessCode(event.target.value)} /></Field>
-        <button type="submit" className="button full" disabled={pending || refreshing}>{pending ? 'Joining the demo school…' : refreshing ? 'Checking school access…' : 'Join School A as a student'}</button>
+        <Field label="Fictional display label" help="Use a made-up label. School managers can see it in the pickup queue."><input name="school-display-label" autoComplete="off" required value={displayLabel} onChange={event => setDisplayLabel(event.target.value)} /></Field>
+        <Field label="Private school join code" help="Get this code privately from the organizer. It is case-sensitive and is not your personal email code."><input name="school-join-code" type="password" autoComplete="off" autoCapitalize="none" spellCheck={false} required value={accessCode} onChange={event => setAccessCode(event.target.value)} /></Field>
+        <button type="submit" className="button full" disabled={pending || refreshing}>{pending ? 'Joining School A…' : refreshing ? 'Checking school access…' : 'Join School A as a student'}</button>
       </fieldset>
     </form>}
     {!needsEmailCode && <ErrorNotice error={error} />}

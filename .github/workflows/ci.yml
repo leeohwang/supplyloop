@@ -52,5 +52,7 @@ jobs:
         run: npm run lint
       - name: Run unit tests
         run: npm test
+      - name: Check operator reset safeguards
+        run: npm run test:reset-operator
       - name: Build static site
         run: npm run build

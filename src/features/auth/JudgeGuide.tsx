@@ -1,9 +1,9 @@
 export function JudgeGuide() {
   return <details className="judge-guide">
-    <summary>Demo guide: try both roles</summary>
+    <summary>Judge guide: create an account and try both roles</summary>
     <div className="judge-guide-content">
-      <p>Get the student and manager sign-in details privately from the organizer. Use accounts for the same school to follow one item through the demo.</p>
-      <p>You can also register a new demo account, confirm its email with a personal code, then enter the private school join code to join School A as a student. School identity is not verified.</p>
+      <p>Choose Create account to make your own SupplyLoop account. Confirm your email with its personal code, then enter the private school join code shared by the organizer to join fictional School A as a student. School identity is not verified.</p>
+      <p>To try Manager desk, get the School A manager sign-in details privately from the organizer. Existing student and manager accounts also remain available. Use accounts for the same school to follow one item through the walkthrough.</p>
       <ol>
         <li><strong>Manager desk:</strong> receive an item, complete its details, then inspect and publish it.</li>
         <li><strong>Student:</strong> find the item, reserve it, and open My pickups to see the reservation.</li>
