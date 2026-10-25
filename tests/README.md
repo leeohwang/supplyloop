@@ -129,3 +129,8 @@ Current guidance was retrieved October 23, 2026 for Node 22.20.0, Supabase JS 2.
 - [Supabase JWT claims](https://supabase.com/docs/guides/auth/jwt-fields) and [OTP verification](https://supabase.com/docs/reference/javascript/auth-verifyotp).
 - PostgreSQL 17 [initdb](https://www.postgresql.org/docs/17/app-initdb.html), [pg_ctl](https://www.postgresql.org/docs/17/app-pg-ctl.html), and [function security](https://www.postgresql.org/docs/17/sql-createfunction.html).
 - [Resend SMTP with Supabase](https://resend.com/docs/send-with-supabase-smtp).
+
+
+## October 24 reset checkpoint
+
+The authorized reset deleted all five previously self-registered accounts and restored the original eleven stock fixtures. All six fixed credentials/memberships passed ordinary-session verification afterward; reservations and completed pickups are zero. Any former personal registration test session now refers to a deleted account. Before another email-enrollment run, an owner-controlled account must be created and confirmed normally, and its private test configuration refreshed. Do not treat an old session or legacy account as proof of a new emailed code. Avoid rerunning the mutating hosted acceptance suite against this clean recording state without coordinating another explicit restoration; it creates test stock and history. Credential-free reset safety checks are `npm run test:reset-operator` and `npm run test:reset-security`.

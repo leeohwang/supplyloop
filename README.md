@@ -1,7 +1,7 @@
 # SupplyLoop
 
 
-**October 24 account flow:** the live app now uses **Create account → email confirmation → Join school with a private code**. The six fixed logins and existing school code stay. The user-authorized deletion of five self-registered accounts and restoration of original fictional stock/history is prepared, pending final browser deletion confirmation. See [current status](docs/verification.md#account-onboarding-and-reset-preparation--october-24-2026).
+**October 24 account flow:** the live app now uses **Create account → email confirmation → Join school with a private code**. The six fixed logins and existing school code stay. The five self-registered accounts have been deleted and the original eleven fictional items restored. All six original fixed logins and memberships were verified; reservations and completed pickups are zero. See [current status](docs/verification.md#account-onboarding-and-reset--october-24-2026).
 A school community prototype for finding, reserving, and collecting donated clothing and reusable physical textbooks. Built with React, TypeScript, Vite, and Supabase Auth/PostgreSQL. Schools, inventory, and fixed-role test identities are fictional; reviewer registration creates real authentication accounts.
 
 The core flow is manager intake and inspection → available catalog → member reservation → manager-confirmed pickup. Each item represents one physical object. The database enforces school isolation, roles, state transitions, and atomic reservations.
